@@ -19,8 +19,8 @@
 body {
   width: 100%;
   height: 100vh;
-  background: url(../img/header_pc-1200.webp) center center;
-  background-color: #1b4ed0;
+  background: url(../img/2026/header_pc.png) center center;
+  background-color: #5a1d70;
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: scroll;
@@ -1781,7 +1781,7 @@ hr.solid {
   }
 
   body {
-    background: url(../img/header_phone-400.webp) center center;
+    background: url(../img/2026/header_phone.png) center center;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: scroll;
