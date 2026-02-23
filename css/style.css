@@ -606,7 +606,7 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
 }
 
 .intro-img {
-  width: 40vw;
+  width: 50vw;
 }
 
 #intro h1 span {
@@ -1781,7 +1781,7 @@ hr.solid {
   }
 
   body {
-    background: url(../img/2026/header_phone.png) center center;
+    background: url(../img/2026/header_pc.png) center center;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: scroll;
@@ -1893,6 +1893,33 @@ hr.solid {
   #subscribe button {
     margin-top: 10px;
   }
+}
+
+/* Decorative Images */
+.deco-left-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.deco-left-bottom img {
+  display: block;
+  max-height: 150px;
+  width: auto;
+}
+
+.deco-top-right {
+  position: fixed;
+  top: 80px;
+  right: 0;
+  z-index: 1;
+}
+
+.deco-top-right img {
+  display: block;
+  max-height: 150px;
+  width: auto;
 }
 
 .img-ytb {
