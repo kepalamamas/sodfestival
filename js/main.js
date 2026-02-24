@@ -124,14 +124,100 @@ jQuery(document).ready(function( $ ) {
     }
   });
 
-  // Gallery carousel (uses the Owl Carousel library)
-  $(".gallery-carousel").owlCarousel({
-    autoplay: true,
-    dots: true,
-    loop: true,
-    center:true,
-    responsive: { 0: { items: 1 }, 768: { items: 3 }, 992: { items: 4 }, 1200: {items: 5}
+  // Gallery carousel (uses Flickity library)
+  var $carousel = $('.gallery-carousel').flickity({
+    cellAlign: 0.58, // Offset to center the gap between two center cards (dual-center)
+    contain: true,
+    wrapAround: true,
+    prevNextButtons: false,
+    pageDots: false,
+    groupCells: false,
+    draggable: true,
+    freeScroll: false,
+    cellSelector: '.carousel-cell',
+    setGallerySize: true,
+    adaptiveHeight: false,
+    friction: 0.28,
+    selectedAttraction: 0.025,
+    on: {
+      ready: function() {
+        // Adjust cells on ready
+        $(window).trigger('resize')
+        updateAdjacentCells();
+      },
+      change: function() {
+        updateAdjacentCells();
+      },
+      settle: function() {
+        updateAdjacentCells();
+      }
     }
+  });
+  
+  // Mark cells with 5-tier scaling (dual-center approach)
+  function updateAdjacentCells() {
+    var $cells = $('.gallery-carousel .carousel-cell');
+    var $selected = $('.gallery-carousel .carousel-cell.is-selected');
+    var selectedIndex = $selected.index();
+    
+    // Remove all scaling classes
+    $cells.removeClass('is-center-companion is-near is-far is-furthest');
+    
+    if (selectedIndex >= 0) {
+      var totalCells = $cells.length;
+      
+      // Mark cells based on position relative to selected
+      $cells.each(function(index) {
+        var distance = index - selectedIndex;
+        
+        // Handle wrap-around for infinite scroll
+        if (Math.abs(distance) > totalCells / 2) {
+          distance = distance > 0 ? distance - totalCells : distance + totalCells;
+        }
+        
+        // Apply classes based on distance from selected
+        if (distance === -1) {
+          // Previous cell is also center (dual-center, left side)
+          $(this).addClass('is-center-companion');
+        } else if (distance === 1 || distance === -2) {
+          // Immediate neighbors of the dual-center
+          $(this).addClass('is-near');
+        } else if (distance === 2 || distance === -3) {
+          // Second-level neighbors
+          $(this).addClass('is-far');
+        } else if (Math.abs(distance) >= 3 || distance <= -4) {
+          // Furthest cells
+          $(this).addClass('is-furthest');
+        }
+      });
+    }
+  }
+  
+  // Update cells per viewport on window resize
+  function updateCarouselCells() {
+    var windowWidth = $(window).width();
+    var cellsToShow = windowWidth < 768 ? 3 : 6;
+    
+    // Destroy and reinitialize with new settings
+    var flickityData = $carousel.data('flickity');
+    if (flickityData) {
+      // Use offset alignment for dual-center on desktop, center for mobile
+      flickityData.options.cellAlign = windowWidth < 768 ? 'center' : 0.58;
+      flickityData.resize();
+      updateAdjacentCells();
+    }
+  }
+  
+  $(window).on('resize', updateCarouselCells);
+  updateCarouselCells();
+  
+  // Custom navigation button handlers
+  $('.gallery-prev').on('click', function() {
+    $carousel.flickity('previous');
+  });
+  
+  $('.gallery-next').on('click', function() {
+    $carousel.flickity('next');
   });
 
   // Buy tickets select the ticket type on click

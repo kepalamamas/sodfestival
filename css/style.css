@@ -178,9 +178,19 @@ h5 {
   } */
 
 .section-header h2 {
-  font-size: 37px;
+  font-size: 50px;
   text-transform: uppercase;
   text-align: center;
+  font-weight: 700;
+  margin-bottom: 10px;
+  font-family: "tommyBold";
+  color: #fffced !important;
+  paint-order: stroke fill;
+}
+
+.text-hubungi-minsod {
+  font-size: 30px;
+  text-transform: uppercase;
   font-weight: 700;
   margin-bottom: 10px;
   font-family: "tommyBold";
@@ -241,8 +251,7 @@ h5 {
 }
 
 #promoter p {
-  font-size: 1.5vw;
-  font-family: "tommyBold";
+  font-size: 1vw;
   color: white;
   margin-bottom: 15px;
 }
@@ -965,7 +974,6 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
   margin-bottom: 0;
   background: none;
   font-weight: bolder;
-  color: #dde6ed;
 }
 
 #venue .venue-info:before {
@@ -1075,46 +1083,225 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
 #gallery {
   padding-top: 60px !important;
   padding: 20px;
-  overflow: hidden;
-  padding-bottom: 40px;
-  /* background-image: url('/img/bgfestival.jfif'); */
-}
-
-#gallery .owl-nav,
-#gallery .owl-dots {
-  margin-top: 25px;
+  overflow: visible;
+  padding-bottom: 60px;
+  position: relative;
   text-align: center;
 }
 
-#gallery .owl-item {
-  border-left: 2px solid #dde6ed;
-  border-right: 2px solid #dde6ed;
+.gallery-container {
+  position: relative;
+  margin: 0 auto;
+  padding: 0 80px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-#gallery .owl-dot {
-  display: inline-block;
-  margin: 0 5px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: #ddd;
-}
-
-#gallery .owl-dot.active {
-  background-color: #f82249;
-}
-
-#gallery .gallery-carousel .owl-stage-outer {
+.gallery-carousel {
   overflow: visible;
+  min-height: 400px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-#gallery .gallery-carousel .center {
-  border: 6px solid #f82249;
-  margin: -10px;
-  box-sizing: content-box;
-  padding: 4px;
-  background: #dde6ed;
+.gallery-carousel .carousel-cell {
+  width: 100%;
+  margin: 40px 15px;
+  transition: opacity 0.5s ease;
+  display: inline-block;
+  vertical-align: top;
+  /* Default state: smaller and less visible */
+  opacity: 0.4;
   z-index: 1;
+}
+
+/* Mobile: 3 cards visible */
+@media (max-width: 767px) {
+  .gallery-carousel .carousel-cell {
+    width: 33%;
+    margin: 40px 8px;
+  }
+  
+  /* On mobile, selected card gets larger */
+  .gallery-carousel .carousel-cell.is-selected {
+    opacity: 1;
+  }
+  
+  .gallery-carousel .carousel-cell.is-selected .card {
+    transform: scale(1.05);
+  }
+  
+  /* Adjacent cells on mobile slightly smaller */
+  .gallery-carousel .carousel-cell.is-center-companion,
+  .gallery-carousel .carousel-cell.is-near {
+    opacity: 0.6;
+    z-index: 2;
+  }
+  
+  .gallery-carousel .carousel-cell.is-center-companion .card,
+  .gallery-carousel .carousel-cell.is-near .card {
+    transform: scale(0.85);
+  }
+  
+  .gallery-container {
+    padding: 0 60px;
+  }
+}
+
+/* Desktop: 6 cards visible */
+@media (min-width: 768px) {
+  .gallery-carousel .carousel-cell {
+    width: 16.5%;
+    margin: 40px 8px;
+  }
+  
+  /* Add extra spacing for center cards */
+  .gallery-carousel .carousel-cell.is-selected,
+  .gallery-carousel .carousel-cell.is-center-companion {
+    margin: 40px 25px;
+  }
+}
+
+/* Ensure cards display properly */
+.gallery-carousel .carousel-cell .card {
+  display: block;
+  height: 100%;
+  transition: transform 0.5s ease;
+  transform: scale(0.75);
+}
+
+/* 5-Tier Scaling System for Desktop */
+@media (min-width: 768px) {
+  /* Furthest cells - smallest */
+  .gallery-carousel .carousel-cell.is-furthest {
+    opacity: 0.3;
+    z-index: 1;
+    margin-right: 30px;
+    margin-left: 30px;
+  }
+  
+  .gallery-carousel .carousel-cell.is-furthest .card {
+    transform: scale(0.6);
+  }
+  
+  /* Far cells - small */
+  .gallery-carousel .carousel-cell.is-far {
+    opacity: 0.5;
+    z-index: 2;
+    margin-right: 30px;
+    margin-left: 30px;
+  }
+  
+  .gallery-carousel .carousel-cell.is-far .card {
+    transform: scale(0.75);
+  }
+  
+  /* Near cells - medium */
+  .gallery-carousel .carousel-cell.is-near {
+    opacity: 0.7;
+    z-index: 3;
+    margin-right: 30px;
+    margin-left: 30px;
+
+  }
+  
+  .gallery-carousel .carousel-cell.is-near .card {
+    transform: scale(0.9);
+  }
+  
+  /* Center companion (second large cell on LEFT) - largest */
+  .gallery-carousel .carousel-cell.is-center-companion {
+    opacity: 1;
+    z-index: 4;
+    margin-right: 30px;
+    margin-left: 30px;
+  }
+  
+  .gallery-carousel .carousel-cell.is-center-companion .card {
+    transform: scale(1.15);
+  }
+  
+  /* Selected center card (on RIGHT) - largest */
+  .gallery-carousel .carousel-cell.is-selected {
+    opacity: 1;
+    z-index: 4;
+    margin-right: 30px;
+    margin-left: 30px;
+  }
+  
+  .gallery-carousel .carousel-cell.is-selected .card {
+    transform: scale(1.15);
+  }
+}
+
+/* Custom Navigation Buttons */
+.gallery-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background-color: rgba(248, 34, 73, 0.9);
+  border: 2px solid white;
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
+.gallery-nav-btn:hover {
+  background-color: rgba(248, 34, 73, 1);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 5px 15px rgba(248, 34, 73, 0.5);
+}
+
+.gallery-nav-btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.gallery-prev {
+  left: 10px;
+}
+
+.gallery-next {
+  right: 10px;
+}
+
+@media (max-width: 767px) {
+  .gallery-nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .gallery-prev {
+    left: 5px;
+  }
+  
+  .gallery-next {
+    right: 5px;
+  }
+}
+
+/* Flickity viewport */
+.gallery-carousel .flickity-viewport {
+  overflow: visible;
+  min-height: 400px;
+  width: 100%;
+}
+
+.gallery-carousel .flickity-slider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /*--------------------------------------------------------------
@@ -1225,9 +1412,11 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
   width: 100%;
   cursor: pointer;
   padding-top: 20px;
+  padding-bottom: 20px;
   border: 2px solid white;
   border-radius: 15px;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgb(255, 255, 255);
+  display: block;
 }
 
 .logo {
@@ -1940,9 +2129,11 @@ hr.solid {
 }
 
 .card-img-top {
-  width: 80%;
+  width: 90%;
   border: 2px solid white;
   border-radius: 15px;
+  display: block;
+  margin: 0 auto;
 }
 
 #timeandplace {
@@ -2083,7 +2274,8 @@ hr.solid {
 }
 
 .nostalgia-caption {
-  font-size: 1.5vw;
+  font-size: 1.2vw;
+  color: #5a1d70;
 }
 
 
