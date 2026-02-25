@@ -736,6 +736,7 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
   font-weight: bold;
   margin-bottom: 10px;
   color: black;
+  overflow-wrap: anywhere;
 }
 
 #gallery h3 {
@@ -1097,6 +1098,7 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
 .gallery-carousel {
@@ -1752,6 +1754,7 @@ hr.solid {
 #footer .copyright {
   text-align: center;
   padding-top: 30px;
+  color: white;
 }
 
 #footer .credits {
@@ -2111,6 +2114,19 @@ hr.solid {
   width: auto;
 }
 
+@media (max-width: 767px) {
+  .deco-left-bottom img,
+  .deco-top-right img {
+    max-height: 100px;      /* smaller height */
+    max-width: 100%;        /* never overflow */
+  }
+}
+
+/* @media (max-width: 424px) {
+  .deco-left-bottom,
+  .deco-top-right { display: none; }
+} */
+
 .img-ytb {
   width: 80%;
   margin-top: 15px;
@@ -2161,11 +2177,12 @@ hr.solid {
 
 #countdownContainer {
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: #0176bb;
   max-width: 80%;
   margin: auto;
-  border: 2px solid white;
+  border: 2px solid #345096;
   padding: 20px;
+  border-radius: 15px;
 }
 
 .countdownBox {
