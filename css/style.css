@@ -1125,13 +1125,8 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
     width: 75%;
     margin: 40px 10px;
   }
-<<<<<<< HEAD
 
-  /* On mobile, selected card gets larger */
-=======
-  
   /* On mobile, selected card gets much larger */
->>>>>>> 666bb4b2714696c9fe98d8c48def0c2f3c119c6a
   .gallery-carousel .carousel-cell.is-selected {
     opacity: 1;
     z-index: 5;
@@ -1140,13 +1135,8 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
   .gallery-carousel .carousel-cell.is-selected .card {
     transform: scale(1.25);
   }
-<<<<<<< HEAD
 
-  /* Adjacent cells on mobile slightly smaller */
-=======
-  
   /* Adjacent cells on mobile smaller (peek effect) */
->>>>>>> 666bb4b2714696c9fe98d8c48def0c2f3c119c6a
   .gallery-carousel .carousel-cell.is-center-companion,
   .gallery-carousel .carousel-cell.is-near {
     opacity: 0.5;
