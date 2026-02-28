@@ -325,10 +325,10 @@ h5 {
 }
 
 .sf-arrows .sf-with-ul:after {
-  content: "\f107";
+  content: "\f282";
   position: absolute;
   right: 15px;
-  font-family: FontAwesome;
+  font-family: 'bootstrap-icons';
   font-style: normal;
   font-weight: normal;
 }
@@ -534,7 +534,7 @@ h5 {
   color: #dde6ed;
 }
 
-#mobile-nav ul .menu-has-children i.fa-chevron-up {
+#mobile-nav ul .menu-has-children i.bi-chevron-up {
   color: #f82249;
 }
 
