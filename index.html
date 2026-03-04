@@ -453,17 +453,21 @@
   <!-- Template Main Javascript File -->
   <script src="js/main.js"></script>
   <script type="text/javascript">
-    $('#merch').click(function () {
-      fbq('track', 'Purchase', { currency: "IDR", value: 1000000.00 });
-      location.href = 'https://goers.co/merchsodvol6';
-    });
-    $('#buyticket').click(function () {
-      fbq('track', 'Purchase', { currency: "IDR", value: 1000000.00 });
-      location.href = 'https://sodtix.com/event/a5f1d339-6582-493f-9762-e950cc98cc27';
-    });
-    $('#presale2').click(function () {
-      fbq('track', 'Purchase', { currency: "IDR", value: 300000.00 });
-      location.href = 'https://sodtix.com/event/a5f1d339-6582-493f-9762-e950cc98cc27';
+    // Track ticket purchase events with proper Meta Pixel format
+    document.addEventListener('DOMContentLoaded', function() {
+      const ticketLink = document.querySelector('.beli-btn');
+      if (ticketLink) {
+        ticketLink.addEventListener('click', function(e) {
+          fbq('track', 'Purchase', {
+            value: 199900,
+            currency: 'IDR',
+            content_name: 'SOD 2026 Early Bird Ticket 2 Days Pass',
+            content_type: 'product',
+            num_items: 1,
+            content_id: 'sod-2026-early-bird-2-days-pass'
+          });
+        });
+      }
     });
   </script>
   <script>
