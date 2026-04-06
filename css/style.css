@@ -1985,8 +1985,11 @@ hr.solid {
   }
 
   .logo {
-    width: 18%;
-    margin: 5px;
+    width: 20%;
+    height: auto;
+    margin: auto 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
   }
 
   #promoter p {
