@@ -80,7 +80,7 @@
   <!-- Meta Pixel Code - noscript fallback -->
   <noscript><img height="1" width="1" style="display:none"
       src="https://www.facebook.com/tr?id=831271802184505&ev=PageView&noscript=1" /></noscript>
-  
+
   <!-- Left bottom decorative image -->
   <div class="deco-left-bottom">
     <img src="img/2026/kiribawah.png" alt="decorative left bottom">
@@ -102,10 +102,11 @@
         </button> -->
         <nav id="nav-menu-container">
           <ul class="nav-menu">
-            <li><a style="text-align: center;" href="https://form.ontheground.id/form/323f9ce7-8a52-41a6-b9cd-a66eaa92eeac" target="_blank">
-              RSVP <br>
-              HALAL BI HALAL
-            </a></li>
+            <li><a style="text-align: center;"
+                href="https://form.ontheground.id/form/323f9ce7-8a52-41a6-b9cd-a66eaa92eeac" target="_blank">
+                RSVP <br>
+                HALAL BI HALAL
+              </a></li>
             <li><a href="#tickets">Tickets</a></li>
             <!-- <li><a href="https://goers.co/merchsodvol6" target="_blank">Merchandise</a></li> -->
             <li><a href="#venue">Karaoke</a></li>
@@ -210,8 +211,26 @@
               </div>
               <div class="ticket-detail-body">
                 <div class="price"><span class="idr">IDR</span> 199.900</div>
-                <div class="available">Available on 28 February 2026 | 16.00 WIB</div>
+                <!-- <div class="available">Available on 28 February 2026 | 16.00 WIB</div> -->
                 <button class="btn beli-btn" disabled aria-disabled="true">SOLD OUT</button>
+                <!-- <div class="buy-wrap">
+                  <a class="btn beli-btn" href="https://sodtix.com/event/9e0819a7-3a11-4dcb-a88b-3f33f5ccbac0"
+                    target="_blank" rel="noopener" aria-disabled="true">BELI TIKET</a>
+                </div> -->
+              </div>
+            </div>
+
+            <div class="ticket-detail-card mt-3">
+              <div class="ticket-detail-header">
+                <span class="header-ticket-detail">
+                  Presale 1
+                </span>
+                (2 DAYS PASS)
+              </div>
+              <div class="ticket-detail-body">
+                <div class="price"><span class="idr">IDR</span> 249.900</div>
+                <div class="available">Available on 11 April 2026</div>
+                <button class="btn beli-btn beli-btn-soon">COMING SOON</button>
                 <!-- <div class="buy-wrap">
                   <a class="btn beli-btn" href="https://sodtix.com/event/9e0819a7-3a11-4dcb-a88b-3f33f5ccbac0"
                     target="_blank" rel="noopener" aria-disabled="true">BELI TIKET</a>
@@ -459,10 +478,10 @@
   <script src="js/main.js"></script>
   <script type="text/javascript">
     // Track ticket purchase events with proper Meta Pixel format
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const ticketLink = document.querySelector('.beli-btn');
       if (ticketLink) {
-        ticketLink.addEventListener('click', function(e) {
+        ticketLink.addEventListener('click', function (e) {
           fbq('track', 'Purchase', {
             value: 199900,
             currency: 'IDR',

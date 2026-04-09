@@ -2447,6 +2447,11 @@ hr.solid {
   color: #1b4ed0;
 }
 
+.beli-btn-soon {
+  background-color: #00a878 !important;
+  color: #fff !important;
+}
+
 .buy-wrap {
   text-align: center;
 }
