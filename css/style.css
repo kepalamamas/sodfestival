@@ -2394,6 +2394,10 @@ hr.solid {
   border: 1px solid rgba(10, 75, 176, 0.04);
 }
 
+.ticket-detail-card-2 {
+  background-color: #00a878 !important;
+}
+
 .ticket-detail-header {
   background: #fff;
   color: #dd6e47;
@@ -2445,11 +2449,6 @@ hr.solid {
 .beli-btn:hover {
   filter: brightness(0.95);
   color: #1b4ed0;
-}
-
-.beli-btn-soon {
-  background-color: #00a878 !important;
-  color: #fff !important;
 }
 
 .buy-wrap {
