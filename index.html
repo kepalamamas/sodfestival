@@ -230,11 +230,7 @@
               <div class="ticket-detail-body">
                 <div class="price"><span class="idr">IDR</span> 249.900</div>
                 <div class="available">Available on 11 April 2026</div>
-                <button id="presale1" class="btn beli-btn">BUY TICKET</button>
-                <!-- <div class="buy-wrap">
-                  <a class="btn beli-btn" href="https://sodtix.com/event/9e0819a7-3a11-4dcb-a88b-3f33f5ccbac0"
-                    target="_blank" rel="noopener" aria-disabled="true">BELI TIKET</a>
-                </div> -->
+                <button id="presale1" onclick="window.open('https://sodtix.com/event/9e0819a7-3a11-4dcb-a88b-3f33f5ccbac0', '_blank');" class="btn beli-btn">BUY TICKET</button>
               </div>
             </div>
           </div>
@@ -495,30 +491,7 @@
     });
   </script>
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      var presaleButton = document.getElementById('presale1');
-      if (!presaleButton) {
-        return;
-      }
-
-      var presaleUrl = 'https://sodtix.com/event/9e0819a7-3a11-4dcb-a88b-3f33f5ccbac0';
-      var releaseTime = new Date('2026-04-11T15:30:00+07:00').getTime();
-      var isReleased = Date.now() >= releaseTime;
-
-      if (!isReleased) {
-        presaleButton.disabled = true;
-        presaleButton.setAttribute('aria-disabled', 'true');
-        presaleButton.textContent = 'COMING SOON';
-        return;
-      }
-
-      presaleButton.disabled = false;
-      presaleButton.removeAttribute('aria-disabled');
-      presaleButton.textContent = 'BUY TICKET';
-      presaleButton.addEventListener('click', function () {
-        window.open(presaleUrl, '_blank', 'noopener,noreferrer');
-      });
-    });
+    
   </script>
   <script>
     document.body.onscroll = function () {
