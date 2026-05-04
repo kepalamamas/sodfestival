@@ -231,20 +231,6 @@
                   class="btn beli-btn">BUY TICKET</button> -->
               </div>
             </div>
-
-            <div class="ticket-detail-card ticket-detail-card-3 mt-3">
-              <div class="ticket-detail-header">
-                <span class="header-ticket-detail">
-                  TESTING DADAKAN
-                </span>
-                (2 DAYS PASS)
-              </div>
-              <div class="ticket-detail-body">
-                <div class="price"><span class="idr">IDR</span> 75.000</div>
-                <div class="available">Available on 4 Mei 2026</div>
-                <button id="dadakan" class="btn beli-btn">BUY TICKET</button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -500,37 +486,6 @@
           });
         });
       }
-    });
-  </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const dadakanBtn = document.getElementById('dadakan');
-      let isOpen = false;
-      let linkUrl = null;
-
-      // Fetch ticket link status on load
-      fetch('https://sodtix.com/api/v1/public-events/link-url/3be7a6aa', { cache: 'no-store' })
-        .then(function (res) { return res.json(); })
-        .then(function (json) {
-          if (json && json.success && json.data) {
-            isOpen = !!json.data.isOpen;
-            if (isOpen && json.data.link_url) linkUrl = json.data.link_url;
-          }
-        })
-        .catch(function (err) {
-          console.error('Failed fetching event link status:', err);
-        })
-        .finally(function () {
-          if (!dadakanBtn) return;
-          dadakanBtn.addEventListener('click', function (e) {
-            if (!isOpen) {
-              alert('event still closed');
-              return;
-            }
-            // Redirect when opened
-            globalThis.location.href = linkUrl || 'https://sodtix.com';
-          });
-        });
     });
   </script>
   <script>
