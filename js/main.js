@@ -1,20 +1,20 @@
-jQuery(document).ready(function( $ ) {
+jQuery(document).ready(function ($) {
 
   // Back to top button
-  $(window).scroll(function() {
+  $(window).scroll(function () {
     if ($(this).scrollTop() > 100) {
       $('.back-to-top').fadeIn('slow');
     } else {
       $('.back-to-top').fadeOut('slow');
     }
   });
-  $('.back-to-top').click(function(){
-    $('html, body').animate({scrollTop : 0},1500, 'easeInOutExpo');
+  $('.back-to-top').click(function () {
+    $('html, body').animate({ scrollTop: 0 }, 1500, 'easeInOutExpo');
     return false;
   });
 
   // Header fixed on scroll
-  $(window).scroll(function() {
+  $(window).scroll(function () {
     if ($(this).scrollTop() > 100) {
       $('#header').addClass('header-scrolled');
     } else {
@@ -64,19 +64,19 @@ jQuery(document).ready(function( $ ) {
     $('body').append('<div id="mobile-body-overly"></div>');
     $('#mobile-nav').find('.menu-has-children').prepend('<i class="bi bi-chevron-down"></i>');
 
-    $(document).on('click', '.menu-has-children i', function(e) {
+    $(document).on('click', '.menu-has-children i', function (e) {
       $(this).next().toggleClass('menu-item-active');
       $(this).nextAll('ul').eq(0).slideToggle();
       $(this).toggleClass("bi-chevron-up bi-chevron-down");
     });
 
-    $(document).on('click', '#mobile-nav-toggle', function(e) {
+    $(document).on('click', '#mobile-nav-toggle', function (e) {
       $('body').toggleClass('mobile-nav-active');
       $('#mobile-nav-toggle i').toggleClass('bi-x-lg bi-list');
       $('#mobile-body-overly').toggle();
     });
 
-    $(document).click(function(e) {
+    $(document).click(function (e) {
       var container = $("#mobile-nav, #mobile-nav-toggle");
       if (!container.is(e.target) && container.has(e.target).length === 0) {
         if ($('body').hasClass('mobile-nav-active')) {
@@ -91,7 +91,7 @@ jQuery(document).ready(function( $ ) {
   }
 
   // Smooth scroll for the menu and links with .scrollto classes
-  $('.nav-menu a, #mobile-nav a, .scrollto').on('click', function() {
+  $('.nav-menu a, #mobile-nav a, .scrollto').on('click', function () {
     if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && location.hostname == this.hostname) {
       var target = $(this.hash);
       if (target.length) {
@@ -100,7 +100,7 @@ jQuery(document).ready(function( $ ) {
         if ($('#header').length) {
           top_space = $('#header').outerHeight();
 
-          if( ! $('#header').hasClass('header-fixed') ) {
+          if (!$('#header').hasClass('header-fixed')) {
             top_space = top_space - 20;
           }
         }
@@ -140,41 +140,41 @@ jQuery(document).ready(function( $ ) {
     friction: 0.28,
     selectedAttraction: 0.025,
     on: {
-      ready: function() {
+      ready: function () {
         // Adjust cells on ready
         $(window).trigger('resize')
         updateAdjacentCells();
       },
-      change: function() {
+      change: function () {
         updateAdjacentCells();
       },
-      settle: function() {
+      settle: function () {
         updateAdjacentCells();
       }
     }
   });
-  
+
   // Mark cells with 5-tier scaling (dual-center approach)
   function updateAdjacentCells() {
     var $cells = $('.gallery-carousel .carousel-cell');
     var $selected = $('.gallery-carousel .carousel-cell.is-selected');
     var selectedIndex = $selected.index();
-    
+
     // Remove all scaling classes
     $cells.removeClass('is-center-companion is-near is-far is-furthest');
-    
+
     if (selectedIndex >= 0) {
       var totalCells = $cells.length;
-      
+
       // Mark cells based on position relative to selected
-      $cells.each(function(index) {
+      $cells.each(function (index) {
         var distance = index - selectedIndex;
-        
+
         // Handle wrap-around for infinite scroll
         if (Math.abs(distance) > totalCells / 2) {
           distance = distance > 0 ? distance - totalCells : distance + totalCells;
         }
-        
+
         // Apply classes based on distance from selected
         if (distance === -1) {
           // Previous cell is also center (dual-center, left side)
@@ -192,12 +192,12 @@ jQuery(document).ready(function( $ ) {
       });
     }
   }
-  
+
   // Update cells per viewport on window resize
   function updateCarouselCells() {
     var windowWidth = $(window).width();
     var cellsToShow = windowWidth < 768 ? 3 : 6;
-    
+
     // Destroy and reinitialize with new settings
     var flickityData = $carousel.data('flickity');
     if (flickityData) {
@@ -207,16 +207,16 @@ jQuery(document).ready(function( $ ) {
       updateAdjacentCells();
     }
   }
-  
+
   $(window).on('resize', updateCarouselCells);
   updateCarouselCells();
-  
+
   // Custom navigation button handlers
-  $('.gallery-prev').on('click', function() {
+  $('.gallery-prev').on('click', function () {
     $carousel.flickity('previous');
   });
-  
-  $('.gallery-next').on('click', function() {
+
+  $('.gallery-next').on('click', function () {
     $carousel.flickity('next');
   });
 
@@ -228,6 +228,30 @@ jQuery(document).ready(function( $ ) {
     modal.find('#ticket-type').val(ticketType);
   })
 
-// custom code
+  // custom code
+
+  // PRESALE2 BUY BUTTON: fetch status and toggle
+  var $btn = $('#presale2');
+  if (!$btn.length) return;
+
+  // Ensure it's disabled until we know the status
+  $btn.prop('disabled', true).attr('aria-disabled', 'true');
+
+  fetch('https://sodtix.com/api/v1/public-events/link-url/3be7a6aa')
+    .then(function (res) { return res.json(); })
+    .then(function (json) {
+      if (json && json.success && json.data && json.data.isOpen) {
+        var url = json.data.link_url || null;
+        if (url) {
+          $btn.prop('disabled', false).attr('aria-disabled', 'false');
+          $btn.off('click').on('click', function () { window.open(url, '_blank'); });
+        }
+      } else {
+        $btn.prop('disabled', true).attr('aria-disabled', 'true');
+      }
+    })
+    .catch(function (err) {
+      console.error('Error fetching presale2 status', err);
+    });
 
 });
