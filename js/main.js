@@ -230,31 +230,12 @@ jQuery(document).ready(function ($) {
 
   // custom code
 
-  var $ticketCategoryButtons = $('.cat-btn[data-ticket-category]');
-  var $ticketCategoryPanels = $('.ticket-category-panel[data-ticket-panel]');
-
-  if ($ticketCategoryButtons.length && $ticketCategoryPanels.length) {
-    $ticketCategoryButtons.on('click', function () {
-      var targetCategory = $(this).data('ticket-category');
-
-      $ticketCategoryButtons.removeClass('active');
-      $(this).addClass('active');
-
-      $ticketCategoryPanels.each(function () {
-        var $panel = $(this);
-        var isActive = $panel.data('ticket-panel') === targetCategory;
-
-        $panel.prop('hidden', !isActive).toggleClass('d-none', !isActive);
-      });
-    });
-  }
-
   // PRESALE2 BUY BUTTON: fetch status and toggle
-  var $btn = $('#presale2');
-  if (!$btn.length) return;
+  var $ticketButtons = $('#presale2dayspass, #presaledaily');
+  if (!$ticketButtons.length) return;
 
   // Ensure it's disabled until we know the status
-  $btn.prop('disabled', true).attr('aria-disabled', 'true');
+  $ticketButtons.prop('disabled', true).attr('aria-disabled', 'true');
 
   fetch('https://sodtix.com/api/v1/public-events/link-url/3be7a6aa')
     .then(function (res) { return res.json(); })
@@ -262,11 +243,11 @@ jQuery(document).ready(function ($) {
       if (json && json.success && json.data && json.data.isOpen) {
         var url = json.data.link_url || null;
         if (url) {
-          $btn.prop('disabled', false).attr('aria-disabled', 'false');
-          $btn.off('click').on('click', function () { window.open(url, '_blank'); });
+          $ticketButtons.prop('disabled', false).attr('aria-disabled', 'false');
+          $ticketButtons.off('click').on('click', function () { window.open(url, '_blank'); });
         }
       } else {
-        $btn.prop('disabled', true).attr('aria-disabled', 'true');
+        $ticketButtons.prop('disabled', true).attr('aria-disabled', 'true');
       }
     })
     .catch(function (err) {
