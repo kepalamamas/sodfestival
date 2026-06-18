@@ -231,7 +231,7 @@ jQuery(document).ready(function ($) {
   // custom code
 
   // PRESALE2 BUY BUTTON: fetch status and toggle
-  var $ticketButtons = $('#presale2dayspass, #presaledaily');
+  var $ticketButtons = $('#presale2dayspass');
   if (!$ticketButtons.length) return;
 
   // Ensure it's disabled until we know the status
