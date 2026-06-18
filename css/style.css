@@ -2402,6 +2402,18 @@ hr.solid {
   background-color: #0351b6 !important;
 }
 
+.ticket-detail-card-4 {
+  background-color: #7b3fe4 !important;
+}
+
+.ticket-detail-card-5 {
+  background-color: #c2551a !important;
+}
+
+.ticket-category-panel[hidden] {
+  display: none !important;
+}
+
 .ticket-detail-header {
   background: #fff;
   color: #dd6e47;

@@ -192,48 +192,78 @@
             <div class="ticket-category-card">
               <div class="category-label">PILIH KATEGORI</div>
               <div class="category-buttons">
-                <button class="cat-btn active" id="two-days">2 DAYS PASS</button>
-                <!-- <button class="cat-btn disabled" id="daily-pass" disabled>DAILY PASS</button> -->
+                <button class="cat-btn active" id="two-days" type="button" data-ticket-category="two-days-pass">2 DAYS PASS</button>
+                <button class="cat-btn" id="daily-pass" type="button" data-ticket-category="daily-pass">Daily</button>
               </div>
             </div>
 
-            <div class="ticket-detail-card mt-3">
-              <div class="ticket-detail-header">
-                <span class="header-ticket-detail">
-                  EARLY BIRD
-                </span>
-                (2 DAYS PASS)
+            <div class="ticket-category-panel mt-3" data-ticket-panel="two-days-pass">
+              <div class="ticket-detail-card">
+                <div class="ticket-detail-header">
+                  <span class="header-ticket-detail">
+                    EARLY BIRD
+                  </span>
+                  (2 DAYS PASS)
+                </div>
+                <div class="ticket-detail-body">
+                  <div class="price"><span class="idr">IDR</span> 199.900</div>
+                  <button class="btn beli-btn" disabled aria-disabled="true">SOLD OUT</button>
+                </div>
               </div>
-              <div class="ticket-detail-body">
-                <div class="price"><span class="idr">IDR</span> 199.900</div>
-                <button class="btn beli-btn" disabled aria-disabled="true">SOLD OUT</button>
+
+              <div class="ticket-detail-card ticket-detail-card-2 mt-3">
+                <div class="ticket-detail-header">
+                  <span class="header-ticket-detail">
+                    Presale 1
+                  </span>
+                  (2 DAYS PASS)
+                </div>
+                <div class="ticket-detail-body">
+                  <div class="price"><span class="idr">IDR</span> 249.900</div>
+                  <button class="btn beli-btn" disabled aria-disabled="true">SOLD OUT</button>
+                </div>
+              </div>
+
+              <div class="ticket-detail-card ticket-detail-card-3 mt-3">
+                <div class="ticket-detail-header">
+                  <span class="header-ticket-detail">
+                    Presale 2
+                  </span>
+                  (2 DAYS PASS)
+                </div>
+                <div class="ticket-detail-body">
+                  <div class="price"><span class="idr">IDR</span> 279.900</div>
+                  <button class="btn beli-btn" disabled aria-disabled="true">SOLD OUT</button>
+                  <!-- <button id="presale2" class="btn beli-btn" disabled aria-disabled="true">BUY TICKET</button> -->
+                </div>
+              </div>
+
+              <div class="ticket-detail-card ticket-detail-card-4 mt-3">
+                <div class="ticket-detail-header">
+                  <span class="header-ticket-detail">
+                    Presale Terakhir
+                  </span>
+                  (2 DAYS PASS)
+                </div>
+                <div class="ticket-detail-body">
+                  <div class="price"><span class="idr">IDR</span> 319.900</div>
+                  <button class="btn beli-btn" disabled aria-disabled="true">SOLD OUT</button>
+                </div>
               </div>
             </div>
 
-            <div class="ticket-detail-card ticket-detail-card-2 mt-3">
-              <div class="ticket-detail-header">
-                <span class="header-ticket-detail">
-                  Presale 1
-                </span>
-                (2 DAYS PASS)
-              </div>
-              <div class="ticket-detail-body">
-                <div class="price"><span class="idr">IDR</span> 249.900</div>
-                <button class="btn beli-btn" disabled aria-disabled="true">SOLD OUT</button>
-              </div>
-            </div>
-
-            <div class="ticket-detail-card ticket-detail-card-3 mt-3">
-              <div class="ticket-detail-header">
-                <span class="header-ticket-detail">
-                  Presale 2
-                </span>
-                (2 DAYS PASS)
-              </div>
-              <div class="ticket-detail-body">
-                <div class="price"><span class="idr">IDR</span> 279.900</div>
-                <button class="btn beli-btn" disabled aria-disabled="true">SOLD OUT</button>
-                <!-- <button id="presale2" class="btn beli-btn" disabled aria-disabled="true">BUY TICKET</button> -->
+            <div class="ticket-category-panel mt-3 d-none" data-ticket-panel="daily-pass" hidden>
+              <div class="ticket-detail-card ticket-detail-card-5">
+                <div class="ticket-detail-header">
+                  <span class="header-ticket-detail">
+                    Presale Terakhir
+                  </span>
+                  (DAILY PASS)
+                </div>
+                <div class="ticket-detail-body">
+                  <div class="price"><span class="idr">IDR</span> 199.900</div>
+                  <button class="btn beli-btn" disabled aria-disabled="true">SOLD OUT</button>
+                </div>
               </div>
             </div>
           </div>
