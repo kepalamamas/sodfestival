@@ -234,8 +234,10 @@ jQuery(document).ready(function ($) {
   var $ticketButtons = $('.ticket-open-button');
   if (!$ticketButtons.length) return;
 
-  // Ensure it's disabled until we know the status
-  $ticketButtons.prop('disabled', true).attr('aria-disabled', 'true');
+  // Ensure all matching buttons are disabled until we know the status
+  $ticketButtons.each(function () {
+    $(this).prop('disabled', true).attr('disabled', 'disabled').attr('aria-disabled', 'true');
+  });
 
   fetch('https://sodtix.com/api/v1/public-events/link-url/3be7a6aa')
     .then(function (res) { return res.json(); })
@@ -243,11 +245,15 @@ jQuery(document).ready(function ($) {
       if (json && json.success && json.data && json.data.isOpen) {
         var url = json.data.link_url || null;
         if (url) {
-          $ticketButtons.prop('disabled', false).attr('aria-disabled', 'false');
+          $ticketButtons.each(function () {
+            $(this).prop('disabled', false).removeAttr('disabled').attr('aria-disabled', 'false');
+          });
           $ticketButtons.off('click').on('click', function () { window.open(url, '_blank'); });
         }
       } else {
-        $ticketButtons.prop('disabled', true).attr('aria-disabled', 'true');
+        $ticketButtons.each(function () {
+          $(this).prop('disabled', true).attr('disabled', 'disabled').attr('aria-disabled', 'true');
+        });
       }
     })
     .catch(function (err) {
