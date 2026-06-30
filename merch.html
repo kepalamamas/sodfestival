@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Merchandise - SOD Festival</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="Official Merchandise SOD Festival" name="keywords">
+  <meta content="Get your official SOD Festival merchandise here! T-Shirts, Hoodies, Accessories and more." name="description">
+
+  <!-- Favicons -->
+  <link href="img/sodfavicon.png" rel="icon">
+  <link href="img/sodfavicon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i|Raleway:300,400,500,700,800" rel="stylesheet">
+
+  <!-- Bootstrap CSS -->
+  <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Main Stylesheets -->
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/merch.css" rel="stylesheet">
+
+  <!-- CryptoJS for AES Encryption (Optional Client side) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+
+  <!-- Alpine.js Core -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- App JS -->
+  <script src="js/merch.js"></script>
+</head>
+
+<body id="body" x-data="checkoutModal">
+
+  <!-- Left bottom decorative image -->
+  <div class="deco-left-bottom">
+    <img src="img/2026/kiribawah.png" alt="decorative left bottom">
+  </div>
+
+  <!-- Top right decorative image -->
+  <div class="deco-top-right">
+    <img src="img/2026/kananatas.png" alt="decorative top right">
+  </div>
+
+  <!-- Navigation Header -->
+  <header id="header">
+    <div class="container">
+      <div id="logo" class="pull-left">
+        <a href="index.html#intro" class="scrollto"><img id="sodfestivalheader" src="img/2026/logo/sodWhite.png" alt="SOD Festival"></a>
+        <nav id="nav-menu-container">
+          <ul class="nav-menu">
+            <li><a href="index.html#tickets">Tickets</a></li>
+            <li class="menu-active"><a href="merch.html">Merchandise</a></li>
+            <li><a href="index.html#venue">Karaoke</a></li>
+            <li><a href="index.html#gallery">Gallery</a></li>
+            <li id="promotorlink"><a href="index.html#promoter">Promoter</a></li>
+            <li><a href="index.html#footer">Contact Us</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Merchandise Section -->
+  <main id="main">
+    <section class="merch-section" x-data="merchApp">
+      <div class="container">
+        <div class="section-header mt-4">
+          <h2 class="merch-title">🛍️ OFFICIAL MERCHANDISE</h2>
+        </div>
+
+        <!-- Loading State -->
+        <template x-if="loading">
+          <div class="text-center py-5">
+            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+              <span class="sr-only">Loading products...</span>
+            </div>
+            <p class="mt-3 text-light font-weight-bold">Fetching SOD Merchandise...</p>
+          </div>
+        </template>
+
+        <!-- Error State -->
+        <template x-if="error && !loading">
+          <div class="alert alert-danger text-center my-4" role="alert" x-text="error"></div>
+        </template>
+
+        <!-- Products Grid -->
+        <template x-if="!loading && !error">
+          <div class="row">
+            <template x-if="products.length === 0">
+              <div class="col-12 text-center py-5">
+                <p class="text-light h4">No merchandise available for sale right now.</p>
+              </div>
+            </template>
+
+            <template x-for="product in products" :key="product.id">
+              <div class="col-6 col-md-4 col-lg-3 mb-3 mb-md-4">
+                <div class="merch-card">
+                  <div class="merch-card-img-wrap">
+                    <img :src="getImageUrl(product.photo)" :alt="product.title" class="merch-card-img">
+                  </div>
+                  <div class="merch-card-body">
+                    <div>
+                      <h3 class="merch-card-title" x-text="product.title"></h3>
+                      <p class="merch-card-merchant" x-text="'Merchant: ' + product.merchant_name"></p>
+                    </div>
+                    <div>
+                      <div class="merch-card-price" x-text="formatRupiah(product.price)"></div>
+                      <button 
+                        class="btn btn-sod-orange" 
+                        @click="$store.cart.addItem(product)"
+                        :disabled="product.quantity <= 0"
+                        x-text="product.quantity > 0 ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </section>
+  </main>
+
+  <!-- Sticky Bottom Cart Summary Bar -->
+  <div class="sticky-cart-bar" x-show="$store.cart.totalItems > 0" x-transition>
+    <div class="container">
+      <div class="cart-bar-content">
+        <div>
+          <span class="text-white font-weight-bold h5 mb-0" x-text="'🛒 ' + $store.cart.totalItems + ' items'"></span>
+          <span class="text-warning font-weight-bold h5 ml-3 mb-0" x-text="'Total: IDR ' + Number($store.cart.subtotal).toLocaleString('id-ID')"></span>
+        </div>
+        <button class="btn btn-sod-orange px-4 py-2" style="width: auto;" @click="openCheckout()">
+          CHECKOUT NOW &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout / QRIS / Success Modal -->
+  <div class="merch-modal-backdrop" x-show="showModal" x-transition style="display: none;">
+    <div class="merch-modal-card">
+      <button class="merch-modal-close" @click="closeCheckout()">&times;</button>
+
+      <!-- STEP 1: CHECKOUT FORM -->
+      <template x-if="step === 'checkout'">
+        <div>
+          <h3 class="font-weight-bold mb-4 text-dark" style="font-family: 'bungee', sans-serif;">CHECKOUT ORDER</h3>
+
+          <!-- Items Summary -->
+          <div class="card mb-4 bg-light border-0">
+            <div class="card-body p-3">
+              <h5 class="font-weight-bold text-dark mb-3">📦 Order Items</h5>
+              <template x-for="item in $store.cart.items" :key="item.product_id">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                  <div>
+                    <strong x-text="item.title" class="text-dark"></strong>
+                    <div class="small text-muted" x-text="'IDR ' + Number(item.price).toLocaleString('id-ID') + ' x ' + item.quantity"></div>
+                  </div>
+                  <div class="d-flex align-items-center">
+                    <button class="btn btn-sm btn-outline-secondary px-2 py-0" @click="$store.cart.updateQuantity(item.product_id, item.quantity - 1)">-</button>
+                    <span class="mx-2 font-weight-bold" x-text="item.quantity"></span>
+                    <button class="btn btn-sm btn-outline-secondary px-2 py-0" @click="$store.cart.updateQuantity(item.product_id, item.quantity + 1)">+</button>
+                    <button class="btn btn-sm btn-link text-danger ml-2 p-0" @click="$store.cart.removeItem(item.product_id)">&times;</button>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Customer Info -->
+          <h5 class="font-weight-bold text-dark mb-3">👤 Customer Information</h5>
+          <div class="form-group-custom">
+            <label>Full Name *</label>
+            <input type="text" class="form-control-custom" placeholder="e.g. John Doe" x-model="customer_name" required>
+          </div>
+          <div class="row">
+            <div class="col-md-6 form-group-custom">
+              <label>Email Address *</label>
+              <input type="email" class="form-control-custom" placeholder="john@example.com" x-model="customer_email" required>
+            </div>
+            <div class="col-md-6 form-group-custom">
+              <label>Phone Number (WhatsApp) *</label>
+              <input type="tel" class="form-control-custom" placeholder="08123456789" x-model="customer_phone" required>
+            </div>
+          </div>
+
+          <!-- Shipping Address -->
+          <h5 class="font-weight-bold text-dark mt-3 mb-3">📍 Shipping Details</h5>
+          <div class="form-group-custom">
+            <label>Street Address *</label>
+            <textarea class="form-control-custom" rows="2" placeholder="Full street address, building, house number" x-model="shipping_address" required></textarea>
+          </div>
+
+          <!-- Destination City Autocomplete -->
+          <div class="form-group-custom style-relative" style="position: relative;">
+            <label>City / District Destination *</label>
+            <input type="text" class="form-control-custom" placeholder="Type city or kecamatan (e.g. Surabaya)" x-model="cityQuery">
+            <div class="small text-muted mt-1" x-show="isSearchingCity">Searching locations...</div>
+            
+            <!-- Autocomplete dropdown -->
+            <div class="autocomplete-suggestions" x-show="citySearchResults.length > 0">
+              <template x-for="res in citySearchResults" :key="res.id || res.city_id || res.destination_id">
+                <div class="autocomplete-item" @click="selectCity(res)" x-text="res.label || res.destination_name || (res.city_name + ', ' + res.province_name)"></div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Courier & Service Selection -->
+          <div class="row" x-show="selectedCity">
+            <div class="col-md-6 form-group-custom">
+              <label>Courier *</label>
+              <select class="form-control-custom" x-model="courier" @change="calculateShippingCost()">
+                <option value="jne">JNE</option>
+                <option value="tiki">TIKI</option>
+                <option value="pos">POS Indonesia</option>
+                <option value="sicepat">SiCepat</option>
+              </select>
+            </div>
+            <div class="col-md-6 form-group-custom">
+              <label>Shipping Service *</label>
+              <select class="form-control-custom" x-model="service" @change="selectService($event.target.value)" :disabled="isCalculatingShipping">
+                <template x-for="srv in availableServices" :key="srv.service">
+                  <option :value="srv.service" x-text="srv.service + ' (' + srv.description + ') - IDR ' + Number(srv.cost[0].value).toLocaleString('id-ID')"></option>
+                </template>
+              </select>
+              <div class="small text-muted mt-1" x-show="isCalculatingShipping">Calculating shipping rate...</div>
+            </div>
+          </div>
+
+          <!-- Total Calculation -->
+          <div class="border-top pt-3 mt-4">
+            <div class="d-flex justify-content-between text-muted mb-1">
+              <span>Subtotal:</span>
+              <span x-text="'IDR ' + Number($store.cart.subtotal).toLocaleString('id-ID')"></span>
+            </div>
+            <div class="d-flex justify-content-between text-muted mb-2">
+              <span>Shipping Cost:</span>
+              <span x-text="'IDR ' + Number(shippingCost).toLocaleString('id-ID')"></span>
+            </div>
+            <div class="d-flex justify-content-between h4 font-weight-bold text-dark">
+              <span>Total Payment:</span>
+              <span class="text-primary" x-text="'IDR ' + Number($store.cart.subtotal + shippingCost).toLocaleString('id-ID')"></span>
+            </div>
+          </div>
+
+          <button class="btn btn-sod-orange mt-4 py-3 font-weight-bold" @click="submitOrder()" :disabled="isSubmitting || isCalculatingShipping">
+            <span x-show="!isSubmitting">🔒 PAY WITH QRIS &rarr;</span>
+            <span x-show="isSubmitting">Processing Order...</span>
+          </button>
+        </div>
+      </template>
+
+      <!-- STEP 2: QRIS DISPLAY -->
+      <template x-if="step === 'qris'">
+        <div class="qris-container">
+          <h3 class="font-weight-bold text-dark mb-1" style="font-family: 'bungee', sans-serif;">SCAN QRIS TO PAY</h3>
+          <p class="text-muted">Order Number: <strong x-text="orderResponse?.order_number" class="text-dark"></strong></p>
+
+          <div class="timer-badge">
+            ⏱️ Expires in: <span x-text="timerDisplay" class="font-weight-bold"></span>
+          </div>
+
+          <div>
+            <img :src="QrImageUrl" alt="QRIS Code" class="qris-image">
+          </div>
+
+          <div class="h4 font-weight-bold text-primary mt-2" x-text="'TOTAL: IDR ' + Number(orderResponse?.total).toLocaleString('id-ID')"></div>
+
+          <p class="small text-muted mt-3">
+            Scan using any mobile banking or e-wallet app (GoPay, OVO, DANA, ShopeePay, BCA, etc.)<br/>
+            This page will automatically update once your payment is confirmed.
+          </p>
+
+          <div class="spinner-border spinner-border-sm text-primary mt-2" role="status"></div>
+          <span class="small text-muted ml-2">Waiting for payment receipt...</span>
+        </div>
+      </template>
+
+      <!-- STEP 3: SUCCESS -->
+      <template x-if="step === 'success'">
+        <div class="text-center py-4">
+          <div class="display-3 text-success mb-3">✅</div>
+          <h3 class="font-weight-bold text-dark mb-2" style="font-family: 'bungee', sans-serif;">PAYMENT SUCCESSFUL!</h3>
+          <p class="text-muted">Thank you! Your merchandise order has been confirmed.</p>
+
+          <div class="card bg-light border-0 p-3 my-4 text-left">
+            <p class="mb-1"><strong>Order Number:</strong> <span x-text="orderResponse?.order_number"></span></p>
+            <p class="mb-1"><strong>Total Paid:</strong> IDR <span x-text="Number(orderResponse?.total).toLocaleString('id-ID')"></span></p>
+            <p class="mb-0 text-success"><strong>Official Paid Invoice sent to your email!</strong></p>
+          </div>
+
+          <button class="btn btn-sod-orange px-4 py-2" @click="closeCheckout(); step = 'checkout';">
+            &larr; BACK TO MERCHANDISE
+          </button>
+        </div>
+      </template>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer id="footer" class="mt-5">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 col-md-12 footer-contact text-center">
+            <h2 class="text-hubungi-minsod">Hubungi MINSOD!</h2>
+            <h6 style="color: white;"><strong>CUSTOMER SERVICE</strong></h6>
+            <p><a style="color: orange;" href="mailto:sodfestival@gmail.com">sodfestival@gmail.com</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container text-center py-3">
+      <div class="copyright">
+        Copyright &copy; 2026 <strong>SOD FESTIVAL</strong> All Rights Reserved
+      </div>
+    </div>
+  </footer>
+
+  <a href="#" class="back-to-top"><img src="img/arrow.png" alt="arrow" class="ticket-img"></a>
+
+  <!-- JavaScript Libraries -->
+  <script src="lib/jquery/jquery.min.js"></script>
+  <script src="lib/jquery/jquery-migrate.min.js"></script>
+  <script src="lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="lib/easing/easing.min.js"></script>
+  <script src="lib/superfish/hoverIntent.js"></script>
+  <script src="lib/superfish/superfish.min.js"></script>
+  <script src="lib/wow/wow.min.js"></script>
+  <script src="lib/venobox/venobox.min.js"></script>
+  <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+
+  <!-- Template Main Javascript File -->
+  <script src="js/main.js"></script>
+</body>
+</html>
