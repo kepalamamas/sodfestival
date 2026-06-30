@@ -27,6 +27,7 @@ document.addEventListener("alpine:init", () => {
           merchant_name: product.merchant_name,
           quantity: 1,
           stock: product.quantity,
+          weight: product.weight || 500,
         });
       }
       this.save();
@@ -68,12 +69,12 @@ document.addEventListener("alpine:init", () => {
   // 2. Main Merchandise Component
   Alpine.data("merchApp", () => ({
     products: [],
+    merchant: null,     // merchant info including PO flags
     loading: true,
     error: null,
     backendUrl: "http://localhost:3003", // Default local backend
 
     async init() {
-      // Auto-detect backend URL if configured or default
       if (window.location.origin.includes("sodtix.com") || window.location.origin.includes("sodfestival")) {
         this.backendUrl = window.location.origin.replace("sodfestival.com", "sodtix.com");
       }
@@ -87,6 +88,16 @@ document.addEventListener("alpine:init", () => {
         const json = await res.json();
         if (json.success) {
           this.products = json.data;
+          // Extract merchant PO info from first product (all share same merchant for sodfestival)
+          if (this.products.length > 0) {
+            this.merchant = {
+              name: this.products[0].merchant_name,
+              is_po: this.products[0].is_po || false,
+              po_type: this.products[0].po_type || "po_days",
+              po_days: this.products[0].po_days || null,
+              po_date: this.products[0].po_date || null,
+            };
+          }
         } else {
           this.error = json.message || "Failed to load products";
         }
@@ -96,6 +107,30 @@ document.addEventListener("alpine:init", () => {
       } finally {
         this.loading = false;
       }
+    },
+
+    /**
+     * Returns PO label text for display
+     */
+    getPoLabel(merchant) {
+      if (!merchant || !merchant.is_po) return null;
+      if (merchant.po_type === "po_days" && merchant.po_days) {
+        return `🕐 Pre-Order · Ships in ${merchant.po_days} days after payment`;
+      }
+      if (merchant.po_type === "po_date" && merchant.po_date) {
+        const d = new Date(merchant.po_date);
+        const formatted = d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+        return `🗓️ Pre-Order · All orders ship on ${formatted}`;
+      }
+      return "📦 Pre-Order";
+    },
+
+    get poLabel() {
+      return this.getPoLabel(this.merchant);
+    },
+
+    get isPO() {
+      return this.merchant && this.merchant.is_po;
     },
 
     formatRupiah(val) {
@@ -121,17 +156,19 @@ document.addEventListener("alpine:init", () => {
     customer_phone: "",
     shipping_address: "",
     
-    // City Search
+    // City Search (new RajaOngkir API)
     cityQuery: "",
     citySearchResults: [],
-    selectedCity: null,
+    selectedCity: null,        // { id, label, province_name, city_name, district_name, zip_code }
     isSearchingCity: false,
 
     // Courier & Service
     courier: "jne",
     service: "",
-    availableServices: [],
+    availableServices: [],     // from new calculate API: [ { shipping, shipping_type, price, etd, shipping_cashback } ]
+    selectedServiceObj: null,  // full service object with cashback
     shippingCost: 0,
+    shippingCashback: 0,       // for RajaOngkir create order
     isCalculatingShipping: false,
 
     // Order & QRIS state
@@ -143,7 +180,6 @@ document.addEventListener("alpine:init", () => {
     timerInterval: null,
 
     init() {
-      // Watch for city query input changes to perform debounced search
       this.$watch("cityQuery", (val) => {
         if (!val || val.length < 2 || (this.selectedCity && this.selectedCity.label === val)) {
           this.citySearchResults = [];
@@ -173,6 +209,8 @@ document.addEventListener("alpine:init", () => {
         this.isSearchingCity = true;
         try {
           const backendUrl = this.getBackendUrl();
+          // New API: GET /shipping/search-city?q=keyword
+          // Response: { data: [ { id, label, province_name, city_name, district_name, zip_code } ] }
           const res = await fetch(`${backendUrl}/api/v1/public/merch/shipping/search-city?q=${encodeURIComponent(query)}`);
           const json = await res.json();
           if (json.success) {
@@ -187,49 +225,73 @@ document.addEventListener("alpine:init", () => {
     },
 
     selectCity(item) {
+      // New API returns: { id, label, province_name, city_name, district_name, zip_code }
       this.selectedCity = item;
-      const label = item.label || item.destination_name || `${item.city_name || item.name}, ${item.province_name || ''}`;
-      this.cityQuery = label;
+      this.cityQuery = item.label || `${item.city_name || item.district_name || ""}, ${item.province_name || ""}`;
       this.citySearchResults = [];
+      this.availableServices = [];
+      this.shippingCost = 0;
+      this.shippingCashback = 0;
+      this.service = "";
+      this.selectedServiceObj = null;
       this.calculateShippingCost();
     },
 
     async calculateShippingCost() {
-      if (!this.selectedCity || !this.courier) return;
-      
-      const cityId = this.selectedCity.id || this.selectedCity.city_id || this.selectedCity.destination_id;
-      if (!cityId) return;
+      if (!this.selectedCity || !this.selectedCity.id) return;
 
       const cartItems = Alpine.store("cart").items;
-      // Estimate 500g per item if weight not specified
       const totalWeight = cartItems.reduce((sum, i) => sum + (i.weight || 500) * i.quantity, 0);
+      const itemValue = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+      // We need the merchant's rajaongkir_destination_id for the shipper side
+      // For sodfestival, we'll use the merchant_id from the first cart item and
+      // the backend will use its stored rajaongkir_destination_id.
+      // Frontend can only calculate with the receiver destination id for now.
+      // We'll pass both and let backend handle it, but to show estimates we call calculate directly.
+      
+      // NOTE: The merchant's shipper_destination_id is stored server-side.
+      // For frontend estimate, if we don't know it, we use a known merchant origin.
+      // The actual shipping cost is re-verified on server during checkout.
+      const shipperDestId = cartItems[0]?.merchant_rajaongkir_dest_id || null;
 
       this.isCalculatingShipping = true;
       this.availableServices = [];
       this.shippingCost = 0;
+      this.shippingCashback = 0;
       this.service = "";
+      this.selectedServiceObj = null;
 
       try {
         const backendUrl = this.getBackendUrl();
-        const res = await fetch(`${backendUrl}/api/v1/public/merch/shipping/calculate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            origin: "501", // Default origin or from merchant
-            destination: String(cityId),
-            weight: totalWeight,
-            courier: this.courier,
-          }),
+        // New API: GET /shipping/calculate
+        // Params: shipper_destination_id, receiver_destination_id, weight, item_value
+        const params = new URLSearchParams({
+          receiver_destination_id: String(this.selectedCity.id),
+          weight: totalWeight,
+          item_value: itemValue,
+          cod: false,
         });
+
+        // Only include shipper if known
+        if (shipperDestId) {
+          params.append("shipper_destination_id", String(shipperDestId));
+        }
+
+        const res = await fetch(`${backendUrl}/api/v1/public/merch/shipping/calculate?${params.toString()}`);
         const json = await res.json();
         
         if (json.success && json.data) {
-          const results = json.data.results || json.data || [];
-          if (results.length > 0 && results[0].costs) {
-            this.availableServices = results[0].costs;
-            if (this.availableServices.length > 0) {
-              this.selectService(this.availableServices[0]);
-            }
+          // New response: { data: { calculate_reguler: [...], calculate_cargo: [...] } }
+          // Each item: { shipping, shipping_type, shipping_code, price, etd, shipping_cashback, price_cashback }
+          const reguler = json.data.calculate_reguler || [];
+          const cargo = json.data.calculate_cargo || [];
+          const allServices = [...reguler, ...cargo];
+          
+          this.availableServices = allServices;
+          
+          if (allServices.length > 0) {
+            this.selectServiceObj(allServices[0]);
           }
         }
       } catch (err) {
@@ -239,21 +301,32 @@ document.addEventListener("alpine:init", () => {
       }
     },
 
-    selectService(srvObj) {
-      if (typeof srvObj === "string") {
-        srvObj = this.availableServices.find((s) => s.service === srvObj) || srvObj;
-      }
-      if (srvObj && srvObj.cost && srvObj.cost.length > 0) {
-        this.service = srvObj.service;
-        this.shippingCost = Number(srvObj.cost[0].value);
-      }
+    selectServiceObj(srvObj) {
+      if (!srvObj) return;
+      // New API fields: shipping_name, service_name, shipping_cost, shipping_cashback
+      this.selectedServiceObj = srvObj;
+      this.courier = (srvObj.shipping_name || "jne").toLowerCase();
+      this.service = srvObj.service_name || "";
+      this.shippingCost = Number(srvObj.shipping_cost || 0);
+      this.shippingCashback = Number(srvObj.shipping_cashback || 0);
+    },
+
+    selectServiceByValue(val) {
+      const found = this.availableServices.find(
+        (s) => `${s.shipping_name}_${s.service_name}` === val
+      );
+      if (found) this.selectServiceObj(found);
+    },
+
+    getServiceSelectValue(srv) {
+      return `${srv.shipping_name}_${srv.service_name}`;
     },
 
     getBackendUrl() {
       if (window.location.origin.includes("sodtix.com") || window.location.origin.includes("sodfestival")) {
         return window.location.origin.replace("sodfestival.com", "sodtix.com");
       }
-      return "http://localhost:3001";
+      return "http://localhost:3003";
     },
 
     async submitOrder() {
@@ -261,23 +334,28 @@ document.addEventListener("alpine:init", () => {
         alert("Please complete all customer and address fields.");
         return;
       }
-      if (!this.selectedCity) {
+      if (!this.selectedCity || !this.selectedCity.id) {
         alert("Please select a valid destination city.");
         return;
       }
+      if (!this.service) {
+        alert("Please select a shipping service.");
+        return;
+      }
 
-      const cityId = this.selectedCity.id || this.selectedCity.city_id || this.selectedCity.destination_id;
-
+      // New API: use selectedCity.id as rajaongkir_destination_id
       const payloadRaw = {
         customer_name: this.customer_name,
         customer_email: this.customer_email,
         customer_phone: this.customer_phone,
         shipping_address: this.shipping_address,
-        shipping_city_id: String(cityId),
-        shipping_city_name: this.selectedCity.city_name || this.selectedCity.name || this.cityQuery,
+        shipping_city_id: String(this.selectedCity.id),           // kept for display
+        shipping_city_name: this.selectedCity.label || this.selectedCity.city_name || this.cityQuery,
         shipping_province: this.selectedCity.province_name || "",
         shipping_courier: this.courier,
-        shipping_service: this.service || "REG",
+        shipping_service: this.service,
+        rajaongkir_destination_id: String(this.selectedCity.id),  // NEW: for RajaOngkir create order
+        shipping_cashback: this.shippingCashback,                  // NEW: cashback from calculate API
         items: Alpine.store("cart").items.map((i) => ({
           product_id: i.product_id,
           quantity: i.quantity,
@@ -308,7 +386,7 @@ document.addEventListener("alpine:init", () => {
         const json = await res.json();
         if (json.success && json.data) {
           this.orderResponse = json.data;
-          Alpine.store("cart").clear(); // Clear cart after order placement
+          Alpine.store("cart").clear();
           this.step = "qris";
           this.startQrisCountdown(json.data.expires_at);
           this.startPaymentPolling(json.data.order_id, json.data.status_token);
@@ -367,12 +445,11 @@ document.addEventListener("alpine:init", () => {
         } catch (err) {
           console.error("Polling error:", err);
         }
-      }, 4000); // poll every 4 seconds
+      }, 4000);
     },
 
     get QrImageUrl() {
       if (!this.orderResponse?.qr_string) return "";
-      // Generate Google Chart API or QR image URL from string
       return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
         this.orderResponse.qr_string
       )}`;

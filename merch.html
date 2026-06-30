@@ -71,6 +71,17 @@
           <h2 class="merch-title">🛍️ OFFICIAL MERCHANDISE</h2>
         </div>
 
+        <!-- PO Banner (shown when merchant is in Pre-Order mode) -->
+        <template x-if="isPO && poLabel">
+          <div class="po-banner" role="alert">
+            <span class="po-banner-icon">📦</span>
+            <div>
+              <strong>PRE-ORDER ITEM</strong>
+              <p x-text="poLabel" class="mb-0"></p>
+            </div>
+          </div>
+        </template>
+
         <!-- Loading State -->
         <template x-if="loading">
           <div class="text-center py-5">
@@ -97,14 +108,23 @@
 
             <template x-for="product in products" :key="product.id">
               <div class="col-6 col-md-4 col-lg-3 mb-3 mb-md-4">
-                <div class="merch-card">
+                <div class="merch-card" :class="{ 'merch-card--po': product.is_po }">
+                  <!-- PO Badge -->
+                  <template x-if="product.is_po">
+                    <div class="po-badge">PRE-ORDER</div>
+                  </template>
+
                   <div class="merch-card-img-wrap">
                     <img :src="getImageUrl(product.photo)" :alt="product.title" class="merch-card-img">
                   </div>
                   <div class="merch-card-body">
                     <div>
                       <h3 class="merch-card-title" x-text="product.title"></h3>
-                      <p class="merch-card-merchant" x-text="'Merchant: ' + product.merchant_name"></p>
+                      <p class="merch-card-merchant" x-text="'by ' + product.merchant_name"></p>
+                      <!-- PO info below product name -->
+                      <template x-if="product.is_po">
+                        <p class="merch-card-po-info" x-text="getPoLabel({ is_po: product.is_po, po_type: product.po_type, po_days: product.po_days, po_date: product.po_date })"></p>
+                      </template>
                     </div>
                     <div>
                       <div class="merch-card-price" x-text="formatRupiah(product.price)"></div>
@@ -209,25 +229,28 @@
             </div>
           </div>
 
-          <!-- Courier & Service Selection -->
-          <div class="row" x-show="selectedCity">
-            <div class="col-md-6 form-group-custom">
-              <label>Courier *</label>
-              <select class="form-control-custom" x-model="courier" @change="calculateShippingCost()">
-                <option value="jne">JNE</option>
-                <option value="tiki">TIKI</option>
-                <option value="pos">POS Indonesia</option>
-                <option value="sicepat">SiCepat</option>
-              </select>
-            </div>
-            <div class="col-md-6 form-group-custom">
+          <!-- Courier & Service Selection (new RajaOngkir API: returns all courier options) -->
+          <div x-show="selectedCity">
+            <div class="form-group-custom">
               <label>Shipping Service *</label>
-              <select class="form-control-custom" x-model="service" @change="selectService($event.target.value)" :disabled="isCalculatingShipping">
-                <template x-for="srv in availableServices" :key="srv.service">
-                  <option :value="srv.service" x-text="srv.service + ' (' + srv.description + ') - IDR ' + Number(srv.cost[0].value).toLocaleString('id-ID')"></option>
+              <div class="small text-muted mb-2" x-show="isCalculatingShipping">⏳ Calculating rates...</div>
+              <template x-if="!isCalculatingShipping && availableServices.length === 0 && selectedCity">
+                <p class="small text-warning">No shipping rates available. Please try a different destination.</p>
+              </template>
+              <div class="shipping-service-list">
+                <template x-for="(srv, idx) in availableServices" :key="idx">
+                  <label class="shipping-service-option" :class="{ 'active': getServiceSelectValue(srv) === getServiceSelectValue(selectedServiceObj) }">
+                    <input type="radio" :value="getServiceSelectValue(srv)" @change="selectServiceByValue(getServiceSelectValue(srv))" style="display:none;">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong x-text="(srv.shipping_name || '').toUpperCase() + ' ' + (srv.service_name || '')"></strong>
+                        <span class="text-muted small ml-2" x-text="srv.etd ? '(' + srv.etd + ')' : ''"></span>
+                      </div>
+                      <div class="font-weight-bold" x-text="'IDR ' + Number(srv.shipping_cost || 0).toLocaleString('id-ID')"></div>
+                    </div>
+                  </label>
                 </template>
-              </select>
-              <div class="small text-muted mt-1" x-show="isCalculatingShipping">Calculating shipping rate...</div>
+              </div>
             </div>
           </div>
 
@@ -290,7 +313,9 @@
           <div class="card bg-light border-0 p-3 my-4 text-left">
             <p class="mb-1"><strong>Order Number:</strong> <span x-text="orderResponse?.order_number"></span></p>
             <p class="mb-1"><strong>Total Paid:</strong> IDR <span x-text="Number(orderResponse?.total).toLocaleString('id-ID')"></span></p>
-            <p class="mb-0 text-success"><strong>Official Paid Invoice sent to your email!</strong></p>
+            <p class="mb-2 text-success"><strong>✅ Official Paid Invoice sent to your email!</strong></p>
+            <p class="mb-0 text-muted small">You can track your order status using your order number:</p>
+            <a :href="'track.html?order=' + orderResponse?.order_number" class="btn btn-outline-primary btn-sm mt-2" target="_blank">🔍 Track My Order</a>
           </div>
 
           <button class="btn btn-sod-orange px-4 py-2" @click="closeCheckout(); step = 'checkout';">
