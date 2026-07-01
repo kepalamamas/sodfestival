@@ -75,7 +75,7 @@ document.addEventListener("alpine:init", () => {
     merchant: null,     // merchant info including PO flags
     loading: true,
     error: null,
-    backendUrl: "http://localhost:3003", // Default local backend
+    backendUrl: "https://sodtix.com", // Default local backend
 
     async init() {
       if (window.location.origin.includes("sodtix.com") || window.location.origin.includes("sodfestival")) {
@@ -332,7 +332,7 @@ document.addEventListener("alpine:init", () => {
           // Each item: { shipping, shipping_type, shipping_code, price, etd, shipping_cashback, price_cashback }
           const reguler = json.data.calculate_reguler || [];
           const cargo = json.data.calculate_cargo || [];
-          const allServices = [...reguler, ...cargo];
+          const allServices = [...reguler, ...cargo].map((srv) => this.normalizeService(srv));
           
           this.availableServices = allServices;
           
@@ -347,32 +347,52 @@ document.addEventListener("alpine:init", () => {
       }
     },
 
+    normalizeService(srvObj) {
+      if (!srvObj) return null;
+      return {
+        ...srvObj,
+        shipping_name: srvObj.shipping_name || srvObj.shipping || srvObj.courier || "",
+        service_name: srvObj.service_name || srvObj.shipping_type || srvObj.service || "",
+        shipping_cost: Number(
+          srvObj.shipping_cost ?? srvObj.price ?? srvObj.cost ?? 0
+        ),
+        shipping_cashback: Number(
+          srvObj.shipping_cashback ?? srvObj.price_cashback ?? 0
+        ),
+      };
+    },
+
     selectServiceObj(srvObj) {
       if (!srvObj) return;
-      // New API fields: shipping_name, service_name, shipping_cost, shipping_cashback
-      this.selectedServiceObj = srvObj;
-      this.courier = (srvObj.shipping_name || "jne").toLowerCase();
-      this.service = srvObj.service_name || "";
-      this.shippingCost = Number(srvObj.shipping_cost || 0);
-      this.shippingCashback = Number(srvObj.shipping_cashback || 0);
+      const normalized = this.normalizeService(srvObj);
+      if (!normalized) return;
+
+      // Support both old and new shipping API field names.
+      this.selectedServiceObj = normalized;
+      this.courier = (normalized.shipping_name || "jne").toLowerCase();
+      this.service = normalized.service_name || "";
+      this.shippingCost = Number(normalized.shipping_cost || 0);
+      this.shippingCashback = Number(normalized.shipping_cashback || 0);
     },
 
     selectServiceByValue(val) {
       const found = this.availableServices.find(
-        (s) => `${s.shipping_name}_${s.service_name}` === val
+        (s) => this.getServiceSelectValue(s) === val
       );
       if (found) this.selectServiceObj(found);
     },
 
     getServiceSelectValue(srv) {
-      return `${srv.shipping_name}_${srv.service_name}`;
+      if (!srv) return "";
+      const normalized = this.normalizeService(srv);
+      return `${normalized.shipping_name}_${normalized.service_name}`;
     },
 
     getBackendUrl() {
       if (window.location.origin.includes("sodtix.com") || window.location.origin.includes("sodfestival")) {
         return window.location.origin.replace("sodfestival.com", "sodtix.com");
       }
-      return "http://localhost:3003";
+      return "https://sodtix.com";
     },
 
     async submitOrder() {
@@ -492,7 +512,7 @@ document.addEventListener("alpine:init", () => {
         } catch (err) {
           console.error("Polling error:", err);
         }
-      }, 4000);
+      }, 5000);
     },
 
     get QrImageUrl() {
