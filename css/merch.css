@@ -141,7 +141,6 @@ body {
   align-items: center;
 }
 
-/* Modal Overlay & Solid Card */
 .merch-modal-backdrop {
   position: fixed;
   top: 0;
@@ -151,9 +150,9 @@ body {
   background: rgba(0, 0, 0, 0.75);
   z-index: 2000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 20px;
+  padding: 20px 15px;
   overflow-y: auto;
 }
 
@@ -165,8 +164,7 @@ body {
   color: #2f3138;
   padding: 30px;
   position: relative;
-  max-height: 90vh;
-  overflow-y: auto;
+  margin: 30px auto;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
@@ -179,6 +177,7 @@ body {
   font-size: 1.5rem;
   color: #a0aec0;
   cursor: pointer;
+  z-index: 10;
 }
 
 .merch-modal-close:hover {
@@ -313,9 +312,9 @@ body {
 
   /* Checkout Modal on Mobile */
   .merch-modal-card {
-    padding: 16px;
+    padding: 20px 16px;
     border-radius: 12px;
-    max-height: 95vh;
+    margin: 10px auto;
   }
   .merch-modal-card h3 {
     font-size: 1.3rem;
@@ -325,7 +324,7 @@ body {
     right: 12px;
   }
   .merch-modal-card > div {
-    padding-bottom: 30px;
+    padding-bottom: 20px;
   }
 }
 
@@ -424,3 +423,20 @@ body {
 }
 
 .shipping-service-option.active strong { color: #5a1d70; }
+
+/* Custom full-width card for checkout items */
+.merch-cart-card {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Detail Carousel Thumbnails */
+.detail-carousel-thumb-wrap:hover {
+  border-color: #5a1d70 !important;
+}
+.detail-carousel-thumb-wrap.active {
+  border-color: #5a1d70 !important;
+  box-shadow: 0 0 0 3px rgba(90, 29, 112, 0.15);
+}
+
+

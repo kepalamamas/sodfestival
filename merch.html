@@ -114,12 +114,12 @@
                     <div class="po-badge">PRE-ORDER</div>
                   </template>
 
-                  <div class="merch-card-img-wrap">
+                  <div class="merch-card-img-wrap" style="cursor: pointer;" @click="openProductDetail(product)">
                     <img :src="getImageUrl(product.photo)" :alt="product.title" class="merch-card-img">
                   </div>
                   <div class="merch-card-body">
                     <div>
-                      <h3 class="merch-card-title" x-text="product.title"></h3>
+                      <h3 class="merch-card-title" style="cursor: pointer;" @click="openProductDetail(product)" x-text="product.title"></h3>
                       <p class="merch-card-merchant" x-text="'by ' + product.merchant_name"></p>
                       <!-- PO info below product name -->
                       <template x-if="product.is_po">
@@ -171,7 +171,7 @@
           <h3 class="font-weight-bold mb-4 text-dark" style="font-family: 'bungee', sans-serif;">CHECKOUT ORDER</h3>
 
           <!-- Items Summary -->
-          <div class="card mb-4 bg-light border-0">
+          <div class="merch-cart-card card mb-4 bg-light border-0">
             <div class="card-body p-3">
               <h5 class="font-weight-bold text-dark mb-3">📦 Order Items</h5>
               <template x-for="item in $store.cart.items" :key="item.product_id">
@@ -270,7 +270,7 @@
             </div>
           </div>
 
-          <button class="btn btn-sod-orange mt-4 py-3 font-weight-bold" @click="submitOrder()" :disabled="isSubmitting || isCalculatingShipping">
+          <button class="btn btn-sod-orange mt-4 py-3 font-weight-bold" @click="submitOrder()" :disabled="isSubmitting || isCalculatingShipping || !selectedCity || !selectedCity.id || !service">
             <span x-show="!isSubmitting">🔒 PAY WITH QRIS &rarr;</span>
             <span x-show="isSubmitting">Processing Order...</span>
           </button>
@@ -324,6 +324,75 @@
         </div>
       </template>
 
+    </div>
+  </div>
+
+  <!-- PRODUCT DETAIL POPUP MODAL -->
+  <div class="merch-modal-backdrop" x-show="showDetailModal" x-transition style="display: none;">
+    <div class="merch-modal-card" style="max-width: 800px; padding: 24px;">
+      <button class="merch-modal-close" @click="closeProductDetail()">&times;</button>
+      
+      <div x-show="detailProduct">
+        <div class="row">
+          <!-- Left: Image Slider -->
+          <div class="col-md-6">
+            <div class="detail-carousel-container" x-data="{ activeIdx: 0 }">
+              <div class="detail-carousel-active mb-3">
+                <img :src="getImageUrl(getCarouselImages()[activeIdx])" alt="Product Image" class="img-fluid rounded border shadow-sm w-100" style="height: 320px; object-fit: contain; background: #f8f9fa;">
+              </div>
+              
+              <!-- Carousel Thumbnails -->
+              <div class="detail-carousel-thumbs d-flex flex-wrap gap-2 justify-content-center" x-show="getCarouselImages().length > 1">
+                <template x-for="(img, idx) in getCarouselImages()" :key="idx">
+                  <div 
+                    class="detail-carousel-thumb-wrap" 
+                    :class="{ 'active': activeIdx === idx }"
+                    @click="activeIdx = idx"
+                    style="cursor: pointer; width: 60px; height: 60px; margin: 4px; border-radius: 6px; overflow: hidden; border: 2px solid #e2e8f0; transition: border-color 0.15s ease;"
+                  >
+                    <img :src="getImageUrl(img)" class="w-100 h-100" style="object-fit: cover;">
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right: Info -->
+          <div class="col-md-6 mt-4 mt-md-0 d-flex flex-column justify-content-between">
+            <div>
+              <h2 class="font-weight-bold text-dark mb-2" x-text="detailProduct?.title" style="font-family: 'bungee', sans-serif;"></h2>
+              <p class="text-muted mb-3" x-text="'by ' + (detailProduct?.merchant_name || 'SOD Festival')"></p>
+              
+              <template x-if="detailProduct?.is_po">
+                <div class="po-badge-detail mb-3" style="display: inline-block; background: linear-gradient(135deg, #5a1d70, #8b3a9f); color: white; padding: 4px 12px; border-radius: 20px; font-family: 'bungee', sans-serif; font-size: 0.75rem;">
+                  PRE-ORDER
+                </div>
+              </template>
+              
+              <div class="h3 font-weight-bold text-primary mb-3" x-text="formatRupiah(detailProduct?.price)"></div>
+              
+              <h5 class="font-weight-bold text-dark mb-2">Product Description</h5>
+              <p class="text-secondary" style="white-space: pre-wrap; font-size: 0.95rem; max-height: 180px; overflow-y: auto;" x-text="detailProduct?.description || 'No description available for this product.'"></p>
+              
+              <div class="small text-muted mt-3 pt-2 border-top">
+                <div class="mb-1">⚖️ <span x-text="'Weight: ' + (detailProduct?.weight || 500) + ' grams'"></span></div>
+                <template x-if="detailProduct?.length || detailProduct?.width || detailProduct?.height">
+                  <div>📦 Dimensions: <span x-text="(detailProduct?.length || 0) + ' x ' + (detailProduct?.width || 0) + ' x ' + (detailProduct?.height || 0) + ' cm'"></span></div>
+                </template>
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <button 
+                class="btn btn-sod-orange py-3 font-weight-bold" 
+                @click="$store.cart.addItem(detailProduct); closeProductDetail();"
+                :disabled="detailProduct?.quantity <= 0"
+                x-text="detailProduct?.quantity > 0 ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

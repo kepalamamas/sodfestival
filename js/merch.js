@@ -28,6 +28,9 @@ document.addEventListener("alpine:init", () => {
           quantity: 1,
           stock: product.quantity,
           weight: product.weight || 500,
+          length: product.length || 0,
+          width: product.width || 0,
+          height: product.height || 0,
         });
       }
       this.save();
@@ -149,6 +152,8 @@ document.addEventListener("alpine:init", () => {
     showModal: false,
     showPaymentModal: false,
     step: "checkout", // 'checkout', 'qris', 'success'
+    showDetailModal: false,
+    detailProduct: null,
 
     // Form Fields
     customer_name: "",
@@ -187,6 +192,18 @@ document.addEventListener("alpine:init", () => {
         }
         this.searchCityDebounced(val);
       });
+      
+      this.$watch("$store.cart.items", (val) => {
+        if (this.showModal && this.selectedCity) {
+          if (val.length === 0) {
+            if (this.step === "checkout") {
+              this.closeCheckout();
+            }
+          } else {
+            this.calculateShippingCost();
+          }
+        }
+      });
     },
 
     openCheckout() {
@@ -200,6 +217,34 @@ document.addEventListener("alpine:init", () => {
 
     closeCheckout() {
       this.showModal = false;
+    },
+
+    openProductDetail(product) {
+      this.detailProduct = product;
+      this.showDetailModal = true;
+    },
+
+    closeProductDetail() {
+      this.showDetailModal = false;
+      this.detailProduct = null;
+    },
+
+    getCarouselImages() {
+      if (!this.detailProduct) return [];
+      const list = [];
+      if (this.detailProduct.photo) list.push(this.detailProduct.photo);
+      if (this.detailProduct.photos && Array.isArray(this.detailProduct.photos)) {
+        this.detailProduct.photos.forEach(p => {
+          if (p && !list.includes(p)) list.push(p);
+        });
+      }
+      return list;
+    },
+
+    getImageUrl(path) {
+      if (!path) return "img/sodfavicon.png";
+      if (path.startsWith("http")) return path;
+      return `${this.getBackendUrl()}${path}`;
     },
 
     searchTimeout: null,
@@ -241,18 +286,17 @@ document.addEventListener("alpine:init", () => {
       if (!this.selectedCity || !this.selectedCity.id) return;
 
       const cartItems = Alpine.store("cart").items;
+      if (cartItems.length === 0) return;
+
       const totalWeight = cartItems.reduce((sum, i) => sum + (i.weight || 500) * i.quantity, 0);
       const itemValue = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
+      // Stacked dimensions logic: max length, max width, sum of height * quantity
+      const maxLength = Math.max(...cartItems.map(i => i.length || 0), 0);
+      const maxWidth = Math.max(...cartItems.map(i => i.width || 0), 0);
+      const totalHeight = cartItems.reduce((sum, i) => sum + (i.height || 0) * i.quantity, 0);
+
       // We need the merchant's rajaongkir_destination_id for the shipper side
-      // For sodfestival, we'll use the merchant_id from the first cart item and
-      // the backend will use its stored rajaongkir_destination_id.
-      // Frontend can only calculate with the receiver destination id for now.
-      // We'll pass both and let backend handle it, but to show estimates we call calculate directly.
-      
-      // NOTE: The merchant's shipper_destination_id is stored server-side.
-      // For frontend estimate, if we don't know it, we use a known merchant origin.
-      // The actual shipping cost is re-verified on server during checkout.
       const shipperDestId = cartItems[0]?.merchant_rajaongkir_dest_id || null;
 
       this.isCalculatingShipping = true;
@@ -264,8 +308,6 @@ document.addEventListener("alpine:init", () => {
 
       try {
         const backendUrl = this.getBackendUrl();
-        // New API: GET /shipping/calculate
-        // Params: shipper_destination_id, receiver_destination_id, weight, item_value
         const params = new URLSearchParams({
           receiver_destination_id: String(this.selectedCity.id),
           weight: totalWeight,
@@ -277,6 +319,10 @@ document.addEventListener("alpine:init", () => {
         if (shipperDestId) {
           params.append("shipper_destination_id", String(shipperDestId));
         }
+
+        if (maxLength > 0) params.append("length", String(maxLength));
+        if (maxWidth > 0) params.append("width", String(maxWidth));
+        if (totalHeight > 0) params.append("height", String(totalHeight));
 
         const res = await fetch(`${backendUrl}/api/v1/public/merch/shipping/calculate?${params.toString()}`);
         const json = await res.json();
@@ -369,10 +415,11 @@ document.addEventListener("alpine:init", () => {
         let bodyPayload = payloadRaw;
 
         // Optional CryptoJS AES payload encryption if library loaded
-        if (window.CryptoJS && process?.env?.MERCH_ENCRYPT_KEY) {
+        const encryptKey = (typeof process !== 'undefined' && process?.env?.MERCH_ENCRYPT_KEY) || null;
+        if (window.CryptoJS && encryptKey) {
           const encryptedStr = CryptoJS.AES.encrypt(
             JSON.stringify(payloadRaw),
-            process.env.MERCH_ENCRYPT_KEY
+            encryptKey
           ).toString();
           bodyPayload = { payload: encryptedStr };
         }
