@@ -327,6 +327,18 @@
     </div>
   </div>
 
+  <!-- QR EXPIRED POPUP -->
+  <div class="merch-modal-backdrop" x-show="showExpiredPopup" x-transition style="display: none; z-index: 2200;">
+    <div class="merch-modal-card" style="max-width: 460px; text-align: center;">
+      <div class="display-3 mb-3">⌛</div>
+      <h3 class="font-weight-bold text-dark mb-2" style="font-family: 'bungee', sans-serif;">QR EXPIRED</h3>
+      <p class="text-muted mb-4">Your QR payment has expired. Please close this checkout and create a new order to continue.</p>
+      <button class="btn btn-sod-orange px-4 py-2" @click="closeExpiredPopupAndCheckout()">
+        CLOSE CHECKOUT
+      </button>
+    </div>
+  </div>
+
   <!-- PRODUCT DETAIL POPUP MODAL -->
   <div class="merch-modal-backdrop" x-show="showDetailModal" x-transition style="display: none;">
     <div class="merch-modal-card" style="max-width: 800px; padding: 24px;">
