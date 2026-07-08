@@ -160,6 +160,7 @@ document.addEventListener("alpine:init", () => {
   Alpine.data("checkoutModal", () => ({
     showModal: false,
     showPaymentModal: false,
+    showExpiredPopup: false,
     step: "checkout", // 'checkout', 'qris', 'success'
     showDetailModal: false,
     detailProduct: null,
@@ -221,11 +222,30 @@ document.addEventListener("alpine:init", () => {
         return;
       }
       this.showModal = true;
+      this.showExpiredPopup = false;
       this.step = "checkout";
     },
 
     closeCheckout() {
       this.showModal = false;
+      this.showExpiredPopup = false;
+      clearInterval(this.pollInterval);
+      clearInterval(this.timerInterval);
+    },
+
+    handleQrisExpired() {
+      if (this.step !== "qris") return;
+      this.timerDisplay = "EXPIRED";
+      this.paymentStatus = "expired";
+      this.showExpiredPopup = true;
+      clearInterval(this.pollInterval);
+      clearInterval(this.timerInterval);
+    },
+
+    closeExpiredPopupAndCheckout() {
+      this.showExpiredPopup = false;
+      this.step = "checkout";
+      this.closeCheckout();
     },
 
     openProductDetail(product) {
@@ -490,9 +510,7 @@ document.addEventListener("alpine:init", () => {
         const diff = expiresAt - now;
 
         if (diff <= 0) {
-          clearInterval(this.timerInterval);
-          this.timerDisplay = "EXPIRED";
-          this.paymentStatus = "expired";
+          this.handleQrisExpired();
         } else {
           const mins = Math.floor(diff / (1000 * 60));
           const secs = Math.floor((diff % (1000 * 60)) / 1000);
@@ -516,10 +534,10 @@ document.addEventListener("alpine:init", () => {
             if (json.data.status === "paid") {
               clearInterval(this.pollInterval);
               clearInterval(this.timerInterval);
+              this.showExpiredPopup = false;
               this.step = "success";
             } else if (json.data.status === "expired" || json.data.status === "cancelled") {
-              clearInterval(this.pollInterval);
-              clearInterval(this.timerInterval);
+              this.handleQrisExpired();
             }
           }
         } catch (err) {
