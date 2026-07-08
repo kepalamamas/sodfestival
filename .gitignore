@@ -4,3 +4,4 @@ node_modules/
 Oracle.key
 package-lock.json
 .env
+NewOracle.key

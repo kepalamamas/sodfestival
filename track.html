@@ -310,7 +310,7 @@
             </div>
             <div>
               <label style="font-family: 'tommyBold', sans-serif; font-size: 0.9rem; color: #4a5568; display: block; margin-bottom: 6px;">
-                Email Address <span style="color: #a0aec0;">(optional, for verification)</span>
+                Email Address *
               </label>
               <input
                 id="track-email-input"
@@ -481,8 +481,12 @@
         error: null,
 
         backendUrl: (() => {
-          if (window.location.origin.includes("sodfestival") || window.location.origin.includes("sodtix")) {
-            return window.location.origin.replace("sodfestival.com", "sodtix.com");
+          const origin = window.location.origin;
+          if (origin.includes("sodtix.com")) {
+            return origin;
+          }
+          if (origin.includes("sodfestival")) {
+            return "https://sodtix.com";
           }
           return "http://localhost:3003";
         })(),
@@ -504,16 +508,17 @@
             this.error = "Please enter your order number.";
             return;
           }
+          if (!this.email.trim()) {
+            this.error = "Please enter your email address.";
+            return;
+          }
 
           this.isLoading = true;
           this.error = null;
           this.result = null;
 
           try {
-            let url = `${this.backendUrl}/api/v1/public/merch/track?order_number=${encodeURIComponent(this.orderNumber.trim())}`;
-            if (this.email.trim()) {
-              url += `&email=${encodeURIComponent(this.email.trim())}`;
-            }
+            let url = `${this.backendUrl}/api/v1/public/merch/track?order_number=${encodeURIComponent(this.orderNumber.trim())}&email=${encodeURIComponent(this.email.trim())}`;
 
             const res = await fetch(url);
             const json = await res.json();

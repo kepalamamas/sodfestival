@@ -78,9 +78,7 @@ document.addEventListener("alpine:init", () => {
     backendUrl: "https://sodtix.com", // Default local backend
 
     async init() {
-      if (window.location.origin.includes("sodtix.com") || window.location.origin.includes("sodfestival")) {
-        this.backendUrl = window.location.origin.replace("sodfestival.com", "sodtix.com");
-      }
+      this.backendUrl = this.getBackendUrl();
       await this.fetchProducts();
     },
 
@@ -138,6 +136,17 @@ document.addEventListener("alpine:init", () => {
 
     formatRupiah(val) {
       return "IDR " + Number(val || 0).toLocaleString("id-ID");
+    },
+
+    getBackendUrl() {
+      const origin = window.location.origin;
+      if (origin.includes("sodtix.com")) {
+        return origin;
+      }
+      if (origin.includes("sodfestival")) {
+        return "https://sodtix.com";
+      }
+      return "https://sodtix.com";
     },
 
     getImageUrl(path) {
@@ -389,8 +398,12 @@ document.addEventListener("alpine:init", () => {
     },
 
     getBackendUrl() {
-      if (window.location.origin.includes("sodtix.com") || window.location.origin.includes("sodfestival")) {
-        return window.location.origin.replace("sodfestival.com", "sodtix.com");
+      const origin = window.location.origin;
+      if (origin.includes("sodtix.com")) {
+        return origin;
+      }
+      if (origin.includes("sodfestival")) {
+        return "https://sodtix.com";
       }
       return "https://sodtix.com";
     },
