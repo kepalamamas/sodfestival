@@ -917,10 +917,76 @@
       resultContent.style.display = 'block';
     }
 
+    /* ── Choice randomization ── */
+    const QUESTION_CHOICES = {
+      2: [ // Section 2, Q1
+        { text: "Nongkrong di kafe estetik", val: "A" },
+        { text: "Nonton live music", val: "B" },
+        { text: "Karaoke sampai suara habis", val: "C" },
+        { text: "Keliling kota tanpa tujuan", val: "D" },
+      ],
+      3: [ // Section 3, Q2
+        { text: "Keliling eksplor semua area", val: "A" },
+        { text: "Langsung kejar barricade", val: "B" },
+        { text: "Hafal hampir semua lirik", val: "C" },
+        { text: "Cari spot paling nyaman", val: "D" },
+      ],
+      4: [ // Section 4, Q3
+        { text: "Unik dan susah ditebak", val: "A" },
+        { text: "Gaada capeknya", val: "B" },
+        { text: "Romantis dan perasa", val: "C" },
+        { text: "Santai dan bebas", val: "D" },
+      ],
+      5: [ // Section 5, Q4
+        { text: "Cari kesibukan baru biar nggak kepikiran", val: "A" },
+        { text: "Curhat panjang ke teman", val: "B" },
+        { text: "Nangis sambil dengerin lagu", val: "C" },
+        { text: "Jalan-jalan tanpa tujuan", val: "D" },
+      ],
+      6: [ // Section 6, Q5
+        { text: "Coba explore hal baru", val: "A" },
+        { text: "Ajak teman-teman hangout", val: "B" },
+        { text: "Maraton playlist favorit", val: "C" },
+        { text: "Pergi spontan tanpa itinerary", val: "D" },
+      ],
+    };
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function initializeChoices() {
+      for (const [sectionId, origChoices] of Object.entries(QUESTION_CHOICES)) {
+        const shuffled = shuffleArray(origChoices);
+        const container = document.getElementById(`choices-${sectionId}`);
+        if (!container) return;
+
+        const items = container.querySelectorAll('.choice-item');
+        const displayLetters = ['A', 'B', 'C', 'D'];
+        
+        shuffled.forEach((choice, idx) => {
+          const item = items[idx];
+          const btn = item.querySelector('.choice-btn');
+          
+          // Keep data-val as original choice.val (A, B, C, or D) for correct answer mapping
+          btn.dataset.val = choice.val;
+          // Display letter is always in order: A, B, C, D (ascending)
+          // But the text is randomized
+          btn.innerHTML = `<span class="choice-letter">${displayLetters[idx]}.</span> ${choice.text}`;
+        });
+      }
+    }
+
     /* ── Init ── */
     document.addEventListener('DOMContentLoaded', () => {
       buildProgressDots();
       updateProgressDots(0);
+      initializeChoices();
     });
   </script>
 
