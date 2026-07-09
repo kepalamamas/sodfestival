@@ -8,7 +8,7 @@ function copyStaticFoldersPlugin() {
   return {
     name: 'copy-static-folders',
     async closeBundle() {
-      const folders = ['js', 'lib', 'contactform']
+      const folders = ['js', 'lib', 'contactform', 'img/dresscode']
       const outDir = resolve(__dirname, 'dist')
 
       async function processDir(srcDir, destDir) {
@@ -75,7 +75,8 @@ export default defineConfig(({ mode }) => {
         input: {
           main: resolve(__dirname, 'index.html'),
           merch: resolve(__dirname, 'merch.html'),
-          track: resolve(__dirname, 'track.html')
+          track: resolve(__dirname, 'track.html'),
+          dresscode: resolve(__dirname, 'dresscode.html')
         }
       },
       // Optimize assets
