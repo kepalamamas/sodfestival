@@ -12,6 +12,8 @@ document.addEventListener("alpine:init", () => {
     addItem(product) {
       const existing = this.items.find((i) => i.product_id === product.id);
       if (existing) {
+        // Keep stock synced with latest fetched product quantity.
+        existing.stock = Number(product.quantity || 0);
         if (existing.quantity < product.quantity) {
           existing.quantity++;
         } else {
@@ -46,11 +48,13 @@ document.addEventListener("alpine:init", () => {
       if (item) {
         if (qty <= 0) {
           this.removeItem(productId);
-        } else if (qty <= item.stock) {
-          item.quantity = qty;
-          this.save();
         } else {
-          alert(`Maximum available stock reached (${item.stock})`);
+          const maxStock = Number(item.stock || 0);
+          item.quantity = Math.min(qty, maxStock);
+          this.save();
+          if (qty > maxStock) {
+            alert(`Maximum available stock reached (${maxStock})`);
+          }
         }
       }
     },
@@ -153,6 +157,11 @@ document.addEventListener("alpine:init", () => {
       if (!path) return "img/sodfavicon.png";
       if (path.startsWith("http")) return path;
       return `${this.backendUrl}${path}`;
+    },
+
+    getCartQuantity(productId) {
+      const item = Alpine.store("cart").items.find((i) => i.product_id === productId);
+      return item ? Number(item.quantity || 0) : 0;
     },
   }));
 

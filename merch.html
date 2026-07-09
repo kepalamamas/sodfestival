@@ -128,12 +128,33 @@
                     </div>
                     <div>
                       <div class="merch-card-price" x-text="formatRupiah(product.price)"></div>
-                      <button 
-                        class="btn btn-sod-orange" 
-                        @click="$store.cart.addItem(product)"
-                        :disabled="product.quantity <= 0"
-                        x-text="product.quantity > 0 ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
-                      </button>
+                      <template x-if="getCartQuantity(product.id) === 0">
+                        <button 
+                          class="btn btn-sod-orange" 
+                          @click="$store.cart.addItem(product)"
+                          :disabled="product.quantity <= 0"
+                          x-text="product.quantity > 0 ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
+                        </button>
+                      </template>
+
+                      <template x-if="getCartQuantity(product.id) > 0">
+                        <div class="merch-qty-controls" role="group" aria-label="Cart quantity controls">
+                          <button
+                            type="button"
+                            class="merch-qty-btn"
+                            @click="$store.cart.updateQuantity(product.id, getCartQuantity(product.id) - 1)">
+                            -
+                          </button>
+                          <span class="merch-qty-value" x-text="getCartQuantity(product.id)"></span>
+                          <button
+                            type="button"
+                            class="merch-qty-btn"
+                            @click="$store.cart.updateQuantity(product.id, getCartQuantity(product.id) + 1)"
+                            :disabled="getCartQuantity(product.id) >= product.quantity">
+                            +
+                          </button>
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </div>

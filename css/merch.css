@@ -106,6 +106,47 @@ body {
   cursor: not-allowed;
 }
 
+.merch-qty-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  min-height: 46px;
+}
+
+.merch-qty-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 6px;
+  background: #5a1d70;
+  color: #fff;
+  font-family: "bungee", sans-serif;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.merch-qty-btn:hover {
+  background: #481759;
+}
+
+.merch-qty-btn:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+}
+
+.merch-qty-value {
+  min-width: 28px;
+  text-align: center;
+  font-family: "tommyBold", sans-serif;
+  font-size: 1rem;
+  color: #1a1a2e;
+}
+
 .btn-sod-purple {
   background-color: #5a1d70;
   color: #ffffff;
