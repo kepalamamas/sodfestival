@@ -539,6 +539,8 @@
     @media (max-width: 600px) {
       .dresscode-wrapper {
         padding-top: 102px;
+        padding-left: 20px;
+        padding-right: 20px;
       }
 
       .quiz-section {
@@ -556,19 +558,23 @@
       }
 
       .hero-tabs {
+        flex-direction: column;
+        align-items: stretch;
         gap: 10px;
       }
 
       .hero-tab {
-        width: calc(50% - 5px);
+        width: 100%;
         font-size: clamp(0.8rem, 4.3vw, 1rem);
         padding: 12px 10px;
       }
 
       .hero-preview {
+        width: 100%;
         padding: 22px 18px;
         min-height: 220px;
         border-radius: 24px;
+        margin-top: 0;
       }
 
       .result-badge {
@@ -632,7 +638,7 @@
 
         <!-- ── Section 0: Intro ── -->
         <div class="quiz-section hero-section active" data-section="0">
-          <img class="hero-logo" src="img/2026/logo/sodWhite.png" alt="SOD Festival 2026">
+          <img class="hero-logo" src="img/2026/logo/dresscode-intro.png" alt="SOD Festival 2026">
           <h1 class="hero-title">SAATNYA CARI TAU<br>WARNA FESTIVAL LO!</h1>
           <div class="hero-tabs" id="heroTabs">
             <button class="hero-tab" type="button" data-category="Geng Karaoke">GENG KARAOKE</button>
@@ -888,19 +894,19 @@
 
     const CATEGORY_PREVIEWS = {
       'Geng Karaoke': {
-        text: 'Lo adalah tipe penonton yang nggak pernah setengah-setengah kalau urusan sing along. Hampir semua lagu hafal! Buat lo, festival paling seru adalah festival yang bikin semua orang ikut karaoke bersama.',
+        text: 'Lo adalah tipe penonton yang nggak pernah setengah-setengah kalau dateng ke festival. Hampir semua lagu lo hafal! Buat lo, festival paling seru itu adalah festival yang bisa bikin semua orang ikut karaoke bareng!',
         previewClass: 'is-pink',
       },
       'Pasukan Joged': {
-        text: 'Mau lagu favorit atau baru pertama kali dengar, selama beat-nya masuk, badan lo pasti langsung ikutan gerak. Energi lo seolah nggak ada habisnya, selalu bikin suasana makin ramai, dan percaya kalau festival yang seru adalah festival yang bikin kaki lo capek karena kebanyakan joget.',
+        text: 'Mau lagu favorit atau lagu yang pertama kali lo denger, selama beat-nya masuk, badan lo pasti langsung ikutan gerak. Energi lo seolah nggak ada habisnya. Lo selalu percaya kalau festival yang seru itu bisa bikin kaki lo capek karena kebanyakan joget.',
         previewClass: 'is-orange',
       },
       'Anak Indie': {
-        text: 'Lo adalah tipe penonton yang lebih suka menikmati musik daripada jadi pusat perhatian. Buat lo, festival adalah tempat terbaik buat menemukan karya-karya baru, nikmatin setiap aransemennya, dan menikmati suasana konser. Bakalan lebih perfect kalau ada senja!',
+        text: 'Lo itu orang yang selalu mencari musik yang paling relate sama diri lo. Bukan soal lagi viral atau nggak, tapi soal lagu yang bisa mewakili perasaan, cerita, dan personality lo. Buat lo, festival adalah tempat terbaik buat menemukan karya yang bakal jadi soundtrack hidup lo.',
         previewClass: 'is-green',
       },
       'Musik Kalcer': {
-        text: 'Lo adalah tipe penonton yang selalu penasaran sama musik-musik baru. Lo senang sangat menikmati setiap detail musik, dan sering pulang dengan playlist baru berisi lagu-lagu yang belum banyak orang tahu.',
+        text: 'Lo selalu selangkah lebih depan soal musik. Sebelum lagu atau band itu viral, biasanya lo udah lebih dulu masukin ke playlist. Buat lo, festival adalah tempat buat ketemu musisi favorit berikutnya dan pulang dengan rekomendasi yang belum tentu teman-teman lo tahu.',
         previewClass: 'is-blue',
       },
     };
@@ -942,15 +948,23 @@
       const preview = CATEGORY_PREVIEWS[category];
       const previewEl = document.getElementById('heroPreview');
       const textEl = document.getElementById('heroPreviewText');
+      const tabsContainer = document.getElementById('heroTabs');
       const tabs = document.querySelectorAll('.hero-tab');
 
-      if (!previewEl || !textEl || !preview) return;
+      if (!previewEl || !textEl || !preview || !tabsContainer) return;
 
       previewEl.classList.remove('is-hidden');
       previewEl.setAttribute('aria-hidden', 'false');
       previewEl.classList.remove('is-pink', 'is-orange', 'is-green', 'is-blue');
       previewEl.classList.add(preview.previewClass);
       textEl.textContent = preview.text;
+
+      const activeTab = tabsContainer.querySelector(`.hero-tab[data-category="${category}"]`);
+      if (window.matchMedia('(max-width: 600px)').matches && activeTab) {
+        activeTab.insertAdjacentElement('afterend', previewEl);
+      } else {
+        tabsContainer.insertAdjacentElement('afterend', previewEl);
+      }
 
       tabs.forEach((tab) => {
         tab.classList.toggle('active', tab.dataset.category === category);
