@@ -638,7 +638,7 @@
 
         <!-- ── Section 0: Intro ── -->
         <div class="quiz-section hero-section active" data-section="0">
-          <img class="hero-logo" src="img/2026/logo/dresscode-intro.png" alt="SOD Festival 2026">
+          <img class="hero-logo" src="img/2026/dresscode-intro.png" alt="SOD Festival 2026">
           <h1 class="hero-title">SAATNYA CARI TAU<br>WARNA FESTIVAL LO!</h1>
           <div class="hero-tabs" id="heroTabs">
             <button class="hero-tab" type="button" data-category="Geng Karaoke">GENG KARAOKE</button>
@@ -1006,7 +1006,7 @@
       tabs.forEach((tab) => {
         tab.addEventListener('mouseenter', () => setHeroPreview(tab.dataset.category));
         tab.addEventListener('focus', () => setHeroPreview(tab.dataset.category));
-        tab.addEventListener('click', () => toggleHeroPreview(tab.dataset.category));
+        tab.addEventListener('click', () => setHeroPreview(tab.dataset.category));
       });
 
       clearHeroPreview();
