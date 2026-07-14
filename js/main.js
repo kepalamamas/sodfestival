@@ -31,24 +31,30 @@ jQuery(document).ready(function ($) {
     $('#intro').css({ height: $(window).height() });
   }
 
-  // Initiate the wowjs animation library
-  new WOW().init();
+  // Initiate the wowjs animation library when loaded on the page.
+  if (typeof WOW === 'function') {
+    new WOW().init();
+  }
 
-  // Initialize Venobox
-  $('.venobox').venobox({
-    bgcolor: '',
-    overlayColor: 'rgba(6, 12, 34, 0.85)',
-    closeBackground: '',
-    closeColor: '#fff'
-  });
+  // Initialize Venobox only when plugin is available.
+  if ($.fn.venobox) {
+    $('.venobox').venobox({
+      bgcolor: '',
+      overlayColor: 'rgba(6, 12, 34, 0.85)',
+      closeBackground: '',
+      closeColor: '#fff'
+    });
+  }
 
-  // Initiate superfish on nav menu
-  $('.nav-menu').superfish({
-    animation: {
-      opacity: 'show'
-    },
-    speed: 400
-  });
+  // Initiate superfish on nav menu only when plugin is available.
+  if ($.fn.superfish) {
+    $('.nav-menu').superfish({
+      animation: {
+        opacity: 'show'
+      },
+      speed: 400
+    });
+  }
 
   // Mobile Navigation
   if ($('#nav-menu-container').length) {
@@ -124,101 +130,103 @@ jQuery(document).ready(function ($) {
     }
   });
 
-  // Gallery carousel (uses Flickity library)
-  var $carousel = $('.gallery-carousel').flickity({
-    cellAlign: 0.58, // Offset to center the gap between two center cards (dual-center)
-    contain: true,
-    wrapAround: true,
-    prevNextButtons: false,
-    pageDots: false,
-    groupCells: false,
-    draggable: true,
-    freeScroll: false,
-    cellSelector: '.carousel-cell',
-    setGallerySize: true,
-    adaptiveHeight: false,
-    friction: 0.28,
-    selectedAttraction: 0.025,
-    on: {
-      ready: function () {
-        // Adjust cells on ready
-        $(window).trigger('resize')
-        updateAdjacentCells();
-      },
-      change: function () {
-        updateAdjacentCells();
-      },
-      settle: function () {
+  // Gallery carousel (uses Flickity library) when available.
+  if ($.fn.flickity && $('.gallery-carousel').length) {
+    var $carousel = $('.gallery-carousel').flickity({
+      cellAlign: 0.58, // Offset to center the gap between two center cards (dual-center)
+      contain: true,
+      wrapAround: true,
+      prevNextButtons: false,
+      pageDots: false,
+      groupCells: false,
+      draggable: true,
+      freeScroll: false,
+      cellSelector: '.carousel-cell',
+      setGallerySize: true,
+      adaptiveHeight: false,
+      friction: 0.28,
+      selectedAttraction: 0.025,
+      on: {
+        ready: function () {
+          // Adjust cells on ready
+          $(window).trigger('resize')
+          updateAdjacentCells();
+        },
+        change: function () {
+          updateAdjacentCells();
+        },
+        settle: function () {
+          updateAdjacentCells();
+        }
+      }
+    });
+
+    // Mark cells with 5-tier scaling (dual-center approach)
+    function updateAdjacentCells() {
+      var $cells = $('.gallery-carousel .carousel-cell');
+      var $selected = $('.gallery-carousel .carousel-cell.is-selected');
+      var selectedIndex = $selected.index();
+
+      // Remove all scaling classes
+      $cells.removeClass('is-center-companion is-near is-far is-furthest');
+
+      if (selectedIndex >= 0) {
+        var totalCells = $cells.length;
+
+        // Mark cells based on position relative to selected
+        $cells.each(function (index) {
+          var distance = index - selectedIndex;
+
+          // Handle wrap-around for infinite scroll
+          if (Math.abs(distance) > totalCells / 2) {
+            distance = distance > 0 ? distance - totalCells : distance + totalCells;
+          }
+
+          // Apply classes based on distance from selected
+          if (distance === -1) {
+            // Previous cell is also center (dual-center, left side)
+            $(this).addClass('is-center-companion');
+          } else if (distance === 1 || distance === -2) {
+            // Immediate neighbors of the dual-center
+            $(this).addClass('is-near');
+          } else if (distance === 2 || distance === -3) {
+            // Second-level neighbors
+            $(this).addClass('is-far');
+          } else if (Math.abs(distance) >= 3 || distance <= -4) {
+            // Furthest cells
+            $(this).addClass('is-furthest');
+          }
+        });
+      }
+    }
+
+    // Update cells per viewport on window resize
+    function updateCarouselCells() {
+      var windowWidth = $(window).width();
+      var cellsToShow = windowWidth < 768 ? 3 : 6;
+
+      // Destroy and reinitialize with new settings
+      var flickityData = $carousel.data('flickity');
+      if (flickityData) {
+        // Use offset alignment for dual-center on desktop, center for mobile
+        flickityData.options.cellAlign = windowWidth < 768 ? 'center' : 0.58;
+        flickityData.resize();
         updateAdjacentCells();
       }
     }
-  });
 
-  // Mark cells with 5-tier scaling (dual-center approach)
-  function updateAdjacentCells() {
-    var $cells = $('.gallery-carousel .carousel-cell');
-    var $selected = $('.gallery-carousel .carousel-cell.is-selected');
-    var selectedIndex = $selected.index();
+    $(window).on('resize', updateCarouselCells);
+    updateCarouselCells();
 
-    // Remove all scaling classes
-    $cells.removeClass('is-center-companion is-near is-far is-furthest');
+    // Custom navigation button handlers
+    $('.gallery-prev').on('click', function () {
+      $carousel.flickity('previous');
+    });
 
-    if (selectedIndex >= 0) {
-      var totalCells = $cells.length;
-
-      // Mark cells based on position relative to selected
-      $cells.each(function (index) {
-        var distance = index - selectedIndex;
-
-        // Handle wrap-around for infinite scroll
-        if (Math.abs(distance) > totalCells / 2) {
-          distance = distance > 0 ? distance - totalCells : distance + totalCells;
-        }
-
-        // Apply classes based on distance from selected
-        if (distance === -1) {
-          // Previous cell is also center (dual-center, left side)
-          $(this).addClass('is-center-companion');
-        } else if (distance === 1 || distance === -2) {
-          // Immediate neighbors of the dual-center
-          $(this).addClass('is-near');
-        } else if (distance === 2 || distance === -3) {
-          // Second-level neighbors
-          $(this).addClass('is-far');
-        } else if (Math.abs(distance) >= 3 || distance <= -4) {
-          // Furthest cells
-          $(this).addClass('is-furthest');
-        }
-      });
-    }
+    $('.gallery-next').on('click', function () {
+      $carousel.flickity('next');
+    });
   }
-
-  // Update cells per viewport on window resize
-  function updateCarouselCells() {
-    var windowWidth = $(window).width();
-    var cellsToShow = windowWidth < 768 ? 3 : 6;
-
-    // Destroy and reinitialize with new settings
-    var flickityData = $carousel.data('flickity');
-    if (flickityData) {
-      // Use offset alignment for dual-center on desktop, center for mobile
-      flickityData.options.cellAlign = windowWidth < 768 ? 'center' : 0.58;
-      flickityData.resize();
-      updateAdjacentCells();
-    }
-  }
-
-  $(window).on('resize', updateCarouselCells);
-  updateCarouselCells();
-
-  // Custom navigation button handlers
-  $('.gallery-prev').on('click', function () {
-    $carousel.flickity('previous');
-  });
-
-  $('.gallery-next').on('click', function () {
-    $carousel.flickity('next');
-  });
 
   // Buy tickets select the ticket type on click
   $('#buy-ticket-modal').on('show.bs.modal', function (event) {

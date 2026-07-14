@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Track Your Order - SOD Festival Merchandise</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="Track your SOD Festival merchandise order status and shipping information." name="description">
+  <meta content="SOD Festival, Track Order, Merchandise, Shipping Status" name="keywords">
+
+  <!-- Favicons -->
+  <link href="img/sodfavicon.png" rel="icon">
+  <link href="img/sodfavicon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i|Raleway:300,400,500,700,800" rel="stylesheet">
+
+  <!-- Bootstrap CSS -->
+  <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Main Stylesheets -->
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/merch.css" rel="stylesheet">
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    /* Tracking Page Specific Styles */
+    .track-section {
+      padding: 130px 0 80px;
+      min-height: 100vh;
+    }
+
+    .track-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .track-title {
+      font-family: "bungee", sans-serif;
+      font-size: 2rem;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 8px;
+      letter-spacing: 0.03em;
+    }
+
+    .track-subtitle {
+      text-align: center;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 32px;
+      font-size: 1rem;
+    }
+
+    .search-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .track-input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .track-input:focus {
+      outline: none;
+      border-color: #5a1d70;
+    }
+
+    .track-btn {
+      background: linear-gradient(135deg, #5a1d70, #8b3a9f);
+      color: #fff;
+      font-family: "bungee", sans-serif;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 24px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      letter-spacing: 0.05em;
+    }
+
+    .track-btn:hover { opacity: 0.9; }
+    .track-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-family: "bungee", sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+    }
+
+    .status-badge.pending    { background: #FFF3CD; color: #856404; }
+    .status-badge.paid       { background: #D1ECF1; color: #0C5460; }
+    .status-badge.processing { background: #CCE5FF; color: #004085; }
+    .status-badge.pickup_requested { background: #E2D9F3; color: #432874; }
+    .status-badge.shipped    { background: #D4EDDA; color: #155724; }
+    .status-badge.completed  { background: #D4EDDA; color: #155724; }
+    .status-badge.cancelled  { background: #F8D7DA; color: #721C24; }
+    .status-badge.expired    { background: #F8D7DA; color: #721C24; }
+    .status-badge.default    { background: #E9ECEF; color: #495057; }
+
+    /* Order Info Card */
+    .order-info-card {
+      background: #F9F5FC;
+      border: 1px solid #E2D9F3;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    /* AWB Highlight Box */
+    .awb-box {
+      background: linear-gradient(135deg, #5a1d70, #8b3a9f);
+      color: #fff;
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .awb-label { font-size: 0.8rem; opacity: 0.8; margin-bottom: 4px; }
+    .awb-number { font-family: "bungee", sans-serif; font-size: 1.3rem; letter-spacing: 0.05em; }
+    .awb-courier { font-size: 0.85rem; opacity: 0.85; }
+
+    /* Timeline */
+    .timeline { position: relative; padding-left: 28px; }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 11px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, #5a1d70, #e2d9f3);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 20px;
+    }
+
+    .timeline-item:last-child { padding-bottom: 0; }
+
+    .timeline-dot {
+      position: absolute;
+      left: -22px;
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #5a1d70;
+      background: #fff;
+      z-index: 1;
+    }
+
+    .timeline-dot.active {
+      background: #5a1d70;
+      box-shadow: 0 0 0 3px rgba(90,29,112,0.2);
+    }
+
+    .timeline-dot.rajaongkir {
+      background: #FFA726;
+      border-color: #FFA726;
+    }
+
+    .timeline-status {
+      font-family: "tommyBold", sans-serif;
+      font-size: 0.85rem;
+      color: #5a1d70;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .timeline-note {
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    .timeline-time {
+      font-size: 0.78rem;
+      color: #a0aec0;
+      margin-top: 2px;
+    }
+
+    .timeline-source-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      background: #e2d9f3;
+      color: #5a1d70;
+      border-radius: 8px;
+      padding: 2px 8px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .timeline-source-badge.rajaongkir {
+      background: #FFF3CD;
+      color: #856404;
+    }
+
+    /* PO Info Box */
+    .po-info-box {
+      background: linear-gradient(135deg, #f8f0fc, #ede0f5);
+      border: 1px solid #c4a8d8;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      color: #5a1d70;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Error / Not Found state */
+    .track-error {
+      background: #FFF5F5;
+      border: 1px solid #FEB2B2;
+      border-radius: 12px;
+      padding: 16px;
+      color: #C53030;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 576px) {
+      .track-card { padding: 20px; border-radius: 14px; }
+      .track-title { font-size: 1.5rem; }
+      .awb-number { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+
+<body id="body">
+
+  <!-- Left bottom decorative image -->
+  <div class="deco-left-bottom">
+    <img src="img/2026/kiribawah.png" alt="decorative left bottom">
+  </div>
+
+  <!-- Top right decorative image -->
+  <div class="deco-top-right">
+    <img src="img/2026/kananatas.png" alt="decorative top right">
+  </div>
+
+  <!-- Navigation Header -->
+  <header id="header">
+    <div class="container">
+      <div id="logo" class="pull-left">
+        <a href="index.html#intro" class="scrollto"><img id="sodfestivalheader" src="img/2026/logo/sodWhite.png" alt="SOD Festival"></a>
+        <nav id="nav-menu-container">
+          <ul class="nav-menu">
+            <li><a href="index.html#tickets">Tickets</a></li>
+            <li class="menu-has-children"><a href="javascript:void(0)">Merchandise</a>
+              <ul>
+                <li><a href="merch.html">Order</a></li>
+                <li><a href="track.html">Track</a></li>
+              </ul>
+            </li>
+            <li><a href="dresscode.html">Dress Code</a></li>
+            <li><a href="index.html#venue">Karaoke</a></li>
+            <li><a href="index.html#gallery">Gallery</a></li>
+            <li id="promotorlink"><a href="index.html#promoter">Promoter</a></li>
+            <li><a href="index.html#footer">Contact Us</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Tracking Section -->
+  <main id="main">
+    <section class="track-section" x-data="trackApp">
+      <div class="container">
+
+        <h1 class="track-title">🔍 TRACK YOUR ORDER</h1>
+        <p class="track-subtitle">Enter your order number to check shipping status</p>
+
+        <div class="track-card">
+
+          <!-- Search Form -->
+          <div class="search-form mb-4">
+            <div>
+              <label class="form-group-custom" style="font-family: 'tommyBold', sans-serif; font-size: 0.9rem; color: #4a5568; display: block; margin-bottom: 6px;">
+                Order Number *
+              </label>
+              <input
+                id="order-number-input"
+                type="text"
+                class="track-input"
+                placeholder="e.g. SODM-20260630-XXXX"
+                x-model="orderNumber"
+                @keydown.enter="search()"
+              >
+            </div>
+            <div>
+              <label style="font-family: 'tommyBold', sans-serif; font-size: 0.9rem; color: #4a5568; display: block; margin-bottom: 6px;">
+                Email Address *
+              </label>
+              <input
+                id="track-email-input"
+                type="email"
+                class="track-input"
+                placeholder="your@email.com"
+                x-model="email"
+                @keydown.enter="search()"
+              >
+            </div>
+            <button id="track-search-btn" class="track-btn" @click="search()" :disabled="isLoading">
+              <span x-show="!isLoading">🔍 TRACK ORDER</span>
+              <span x-show="isLoading">Searching...</span>
+            </button>
+          </div>
+
+          <!-- Error Message -->
+          <template x-if="error">
+            <div class="track-error">
+              <strong>❌ <span x-text="error"></span></strong>
+              <p class="mb-0 mt-2 small">Please check your order number and try again.</p>
+            </div>
+          </template>
+
+          <!-- Results -->
+          <template x-if="result">
+            <div>
+              <!-- Order Info -->
+              <div class="order-info-card">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                  <div>
+                    <div style="font-size: 0.8rem; color: #a0aec0; margin-bottom: 4px;">ORDER NUMBER</div>
+                    <div style="font-family: 'bungee', sans-serif; font-size: 1.1rem; color: #1a1a2e;" x-text="result.order_number"></div>
+                  </div>
+                  <span class="status-badge" :class="result.status" x-text="result.status_label"></span>
+                </div>
+
+                <div class="row small">
+                  <div class="col-6 mb-2">
+                    <div style="color: #a0aec0; font-size: 0.78rem;">CUSTOMER</div>
+                    <div style="font-weight: 600;" x-text="result.customer_name"></div>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <div style="color: #a0aec0; font-size: 0.78rem;">COURIER</div>
+                    <div style="font-weight: 600;" x-text="(result.courier || '-') + (result.service ? ' ' + result.service : '')"></div>
+                  </div>
+                </div>
+
+                <p class="mb-0 small" style="color: #5a1d70; font-style: italic;" x-text="result.message"></p>
+              </div>
+
+              <!-- PO Info Box -->
+              <template x-if="result.po_info">
+                <div class="po-info-box">
+                  <span style="font-size: 1.3rem;">📦</span>
+                  <div>
+                    <strong>Pre-Order Item</strong>
+                    <p class="mb-0" x-text="result.po_info.label"></p>
+                  </div>
+                </div>
+              </template>
+
+              <!-- AWB Box -->
+              <template x-if="result.awb">
+                <div class="awb-box">
+                  <div>
+                    <div class="awb-label">AIRWAYBILL NUMBER</div>
+                    <div class="awb-number" x-text="result.awb"></div>
+                    <div class="awb-courier" x-text="result.courier + (result.shipping_status ? ' · ' + result.shipping_status : '')"></div>
+                  </div>
+                  <button
+                    class="btn btn-sm"
+                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px;"
+                    @click="copyAwb(result.awb)"
+                    id="copy-awb-btn">
+                    📋 Copy
+                  </button>
+                </div>
+              </template>
+
+              <!-- Timeline -->
+              <template x-if="result.timeline && result.timeline.length > 0">
+                <div>
+                  <h5 style="font-family: 'bungee', sans-serif; color: #5a1d70; font-size: 0.95rem; margin-bottom: 16px;">
+                    📋 DELIVERY TIMELINE
+                  </h5>
+                  <div class="timeline">
+                    <template x-for="(event, index) in result.timeline" :key="index">
+                      <div class="timeline-item">
+                        <div class="timeline-dot" :class="{ 'active': index === result.timeline.length - 1, 'rajaongkir': event.source === 'rajaongkir' }"></div>
+                        <div class="timeline-status">
+                          <span x-text="event.label || event.status"></span>
+                          <span class="timeline-source-badge" :class="event.source === 'rajaongkir' ? 'rajaongkir' : ''"
+                            x-text="event.source === 'rajaongkir' ? '🚚 Courier' : '📦 System'">
+                          </span>
+                        </div>
+                        <div class="timeline-note" x-show="event.note" x-text="event.note"></div>
+                        <div class="timeline-time" x-show="event.timestamp" x-text="formatDate(event.timestamp)"></div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <!-- No AWB yet -->
+              <template x-if="!result.awb">
+                <div class="text-center mt-3 text-muted">
+                  <i class="bi bi-clock" style="font-size: 2rem; color: #a0aec0;"></i>
+                  <p class="mt-2 mb-0 small">Shipping tracking will be available once your order has been picked up by the courier.</p>
+                </div>
+              </template>
+
+              <!-- Back to Merch -->
+              <div class="text-center mt-4">
+                <a href="merch.html" class="btn btn-sm" style="color: #5a1d70; border: 1px solid #5a1d70; border-radius: 8px; padding: 8px 20px;">
+                  &larr; Back to Merchandise
+                </a>
+              </div>
+            </div>
+          </template>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer id="footer" class="mt-5">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 col-md-12 footer-contact text-center">
+            <h2 class="text-hubungi-minsod">Hubungi MINSOD!</h2>
+            <h6 style="color: white;"><strong>CUSTOMER SERVICE</strong></h6>
+            <p><a style="color: orange;" href="mailto:sodfestival@gmail.com">sodfestival@gmail.com</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container text-center py-3">
+      <div class="copyright">
+        Copyright &copy; 2026 <strong>SOD FESTIVAL</strong> All Rights Reserved
+      </div>
+    </div>
+  </footer>
+
+  <a href="#" class="back-to-top"><img src="img/arrow.png" alt="arrow" class="ticket-img"></a>
+
+  <!-- JavaScript Libraries -->
+  <script src="lib/jquery/jquery.min.js"></script>
+  <script src="lib/jquery/jquery-migrate.min.js"></script>
+  <script src="lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="lib/easing/easing.min.js"></script>
+  <script src="lib/superfish/hoverIntent.js"></script>
+  <script src="lib/superfish/superfish.min.js"></script>
+  <script src="lib/wow/wow.min.js"></script>
+  <script src="lib/venobox/venobox.min.js"></script>
+  <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("trackApp", () => ({
+        orderNumber: "",
+        email: "",
+        isLoading: false,
+        result: null,
+        error: null,
+
+        backendUrl: (() => {
+          const origin = window.location.origin;
+          if (origin.includes("sodtix.com")) {
+            return origin;
+          }
+          if (origin.includes("sodfestival")) {
+            return "https://sodtix.com";
+          }
+          return "http://localhost:3003";
+        })(),
+
+        init() {
+          // Pre-fill from URL params
+          const params = new URLSearchParams(window.location.search);
+          const orderParam = params.get("order");
+          const emailParam = params.get("email");
+          if (orderParam) {
+            this.orderNumber = orderParam;
+            this.search();
+          }
+          if (emailParam) this.email = emailParam;
+        },
+
+        async search() {
+          if (!this.orderNumber.trim()) {
+            this.error = "Please enter your order number.";
+            return;
+          }
+          if (!this.email.trim()) {
+            this.error = "Please enter your email address.";
+            return;
+          }
+
+          this.isLoading = true;
+          this.error = null;
+          this.result = null;
+
+          try {
+            let url = `${this.backendUrl}/api/v1/public/merch/track?order_number=${encodeURIComponent(this.orderNumber.trim())}&email=${encodeURIComponent(this.email.trim())}`;
+
+            const res = await fetch(url);
+            const json = await res.json();
+
+            if (json.success && json.data) {
+              this.result = json.data;
+            } else {
+              this.error = json.message || "Order not found.";
+            }
+          } catch (err) {
+            console.error("Track error:", err);
+            this.error = "Unable to connect to server. Please try again.";
+          } finally {
+            this.isLoading = false;
+          }
+        },
+
+        formatDate(ts) {
+          if (!ts) return "";
+          try {
+            const d = new Date(ts);
+            return d.toLocaleString("id-ID", {
+              day: "numeric", month: "short", year: "numeric",
+              hour: "2-digit", minute: "2-digit"
+            });
+          } catch { return ts; }
+        },
+
+        async copyAwb(awb) {
+          try {
+            await navigator.clipboard.writeText(awb);
+            alert("AWB copied to clipboard: " + awb);
+          } catch {
+            prompt("Copy this AWB number:", awb);
+          }
+        },
+      }));
+    });
+  </script>
+</body>
+</html>

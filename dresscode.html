@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WH0G4S2CB8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-WH0G4S2CB8');
+  </script>
+
+  <meta charset="utf-8">
+  <title>Dress Code - SOD Festival 2026</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="Cari tahu warna festival kamu di SOD Festival 2026!" name="description">
+  <meta content="SOD Festival, Dress Code, Warna Festival, Quiz" name="keywords">
+
+  <!-- Favicons -->
+  <link href="img/sodfavicon.png" rel="icon">
+  <link href="img/sodfavicon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i|Raleway:300,400,500,700,800" rel="stylesheet">
+
+  <!-- Bootstrap CSS -->
+  <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Main Stylesheets -->
+  <link href="css/style.css" rel="stylesheet">
+
+  <style>
+    /* ── Dresscode Quiz Page Styles ── */
+
+    :root {
+      --dresscode-white: #fff7ff;
+      --dresscode-pink: #f6aac7;
+      --dresscode-pink-dark: #e68cb0;
+      --dresscode-orange: #f4773b;
+      --dresscode-orange-dark: #df6229;
+      --dresscode-green: #07ba7e;
+      --dresscode-green-dark: #009c67;
+      --dresscode-blue: #0a8fda;
+      --dresscode-blue-dark: #0177b9;
+      --dresscode-lilac: #d9d2ef;
+      --dresscode-panel: rgba(115, 33, 132, 0.34);
+      --dresscode-card: rgba(255, 255, 255, 0.16);
+      --dresscode-shadow: 0 18px 50px rgba(37, 5, 58, 0.25);
+    }
+
+    .dresscode-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+      min-height: 100vh;
+    }
+
+    .dresscode-card {
+      background: transparent;
+      border-radius: 32px;
+      max-width: 1180px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Section Slide System ── */
+    .quiz-section {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      transform: translateX(60px);
+      pointer-events: none;
+      transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quiz-section.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
+      position: relative;
+    }
+
+    .quiz-section:not(.hero-section):not(.result-section) {
+      max-width: 760px;
+      margin: 0 auto;
+      background: var(--dresscode-card);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
+      box-shadow: var(--dresscode-shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 42px 34px;
+    }
+
+    .quiz-section.exit-left {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    /* ── Typography ── */
+    .quiz-title {
+      font-family: "bungee", sans-serif;
+      color: var(--dresscode-white);
+      font-size: clamp(1.1rem, 3vw, 1.55rem);
+      line-height: 1.3;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .quiz-desc {
+      font-family: "tommyRegular", "Raleway", sans-serif;
+      color: var(--dresscode-white);
+      font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+      line-height: 1.7;
+      margin-bottom: 0;
+    }
+
+    .quiz-bottom-text {
+      font-family: "bungee", sans-serif;
+      color: var(--dresscode-white);
+      font-size: clamp(1.1rem, 3vw, 1.55rem);
+      margin-top: 28px;
+      margin-bottom: 0;
+    }
+
+    /* ── Inputs ── */
+    .quiz-label {
+      font-family: "bungee", sans-serif;
+      color: var(--dresscode-white);
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .quiz-input {
+      width: 100%;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-radius: 16px;
+      padding: 10px 16px;
+      font-family: "tommyRegular", "Raleway", sans-serif;
+      font-size: 1rem;
+      color: var(--dresscode-white);
+      background: rgba(255, 255, 255, 0.14);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 20px;
+    }
+
+    .quiz-input::placeholder {
+      color: rgba(255, 247, 255, 0.72);
+    }
+
+    .quiz-input:focus {
+      border-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
+    }
+
+    .quiz-input.input-error {
+      border-color: #e53935;
+      box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.15);
+    }
+
+    .input-error-msg {
+      font-family: "tommyRegular", "Raleway", sans-serif;
+      color: #e53935;
+      font-size: 0.82rem;
+      margin-top: -14px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    /* ── Choice Buttons ── */
+    .choices-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 8px;
+    }
+
+    .choice-item {
+      margin-bottom: 12px;
+    }
+
+    .choice-btn {
+      width: 100%;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.14);
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      padding: 12px 18px;
+      font-family: "tommyRegular", "Raleway", sans-serif;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      color: var(--dresscode-white);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .choice-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+
+    .choice-btn.selected {
+      background: rgba(255, 255, 255, 0.94);
+      border-color: rgba(255, 255, 255, 0.94);
+      color: #732184;
+    }
+
+    .choice-letter {
+      font-family: "bungee", sans-serif;
+      font-size: 1rem;
+      min-width: 24px;
+    }
+
+    /* ── Navigation Buttons ── */
+    .quiz-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 28px;
+      gap: 12px;
+    }
+
+    .quiz-nav .spacer {
+      flex: 1;
+    }
+
+    .btn-quiz {
+      font-family: "bungee", sans-serif;
+      font-size: 0.95rem;
+      border-radius: 50px;
+      padding: 12px 32px;
+      border: 0;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      letter-spacing: 0.04em;
+    }
+
+    .btn-next {
+      background: #5faadd;
+      color: var(--dresscode-white);
+      box-shadow: 0 8px 20px rgba(3, 112, 173, 0.35);
+    }
+
+    .btn-next:hover:not(:disabled) {
+      background: linear-gradient(180deg, #99dcff 0%, #62c0fb 100%);
+      box-shadow: 0 10px 24px rgba(3, 112, 173, 0.45);
+    }
+
+    .btn-next:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-back {
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--dresscode-white);
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    /* ── Progress dots ── */
+    .quiz-progress {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .progress-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .progress-dot.active {
+      background: #83d4ff;
+      transform: scale(1.3);
+    }
+
+    .progress-dot.done {
+      background: rgba(131, 212, 255, 0.85);
+    }
+
+    /* ── Hero Section ── */
+    .hero-section {
+      gap: 20px;
+      align-items: center;
+      text-align: center;
+      padding-top: 10px;
+    }
+
+    .hero-logo {
+      width: min(200px, 30vw);
+      max-width: 100%;
+      margin-bottom: 4px;
+    }
+
+    .hero-title {
+      font-family: "bungee", sans-serif;
+      color: var(--dresscode-white);
+      font-size: clamp(2rem, 5vw, 5rem);
+      line-height: 1.02;
+      letter-spacing: 0.03em;
+      margin: 0;
+      text-transform: uppercase;
+      text-shadow: 0 8px 24px rgba(56, 11, 81, 0.28);
+    }
+
+    .hero-copy {
+      font-family: "tommyBold", "Raleway", sans-serif;
+      color: var(--dresscode-white);
+      font-size: clamp(0.8rem, 1.5vw, 1rem);
+      line-height: 1.45;
+      margin: 0 auto;
+    }
+
+    .hero-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .hero-tab {
+      border: 0;
+      border-radius: 18px;
+      padding: 12px 18px;
+      font-family: "bungee", sans-serif;
+      font-size: clamp(0.95rem, 2vw, 1.65rem);
+      line-height: 1;
+      color: var(--dresscode-white);
+      cursor: pointer;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+      white-space: nowrap;
+    }
+
+    .hero-tab:hover,
+    .hero-tab.active {
+      transform: scale(1.08);
+      box-shadow: 0 10px 24px rgba(46, 9, 61, 0.24);
+      filter: saturate(1.02) brightness(1.02);
+    }
+
+    .hero-tab[data-category="Geng Karaoke"] {
+      background: var(--dresscode-pink);
+    }
+
+    .hero-tab[data-category="Pasukan Joged"] {
+      background: var(--dresscode-orange);
+    }
+
+    .hero-tab[data-category="Anak Indie"] {
+      background: var(--dresscode-green);
+    }
+
+    .hero-tab[data-category="Musik Kalcer"] {
+      background: var(--dresscode-blue);
+    }
+
+    .hero-preview {
+      width: min(860px, 100%);
+      min-height: 184px;
+      padding: 28px 30px;
+      border-radius: 30px;
+      box-shadow: var(--dresscode-shadow);
+      text-align: left;
+      transition: background 0.24s ease, transform 0.24s ease;
+    }
+
+    .hero-preview.is-hidden {
+      display: none;
+    }
+
+    .hero-preview.is-pink {
+      background: rgba(246, 170, 199, 0.78);
+    }
+
+    .hero-preview.is-orange {
+      background: rgba(244, 119, 59, 0.82);
+    }
+
+    .hero-preview.is-green {
+      background: rgba(7, 186, 126, 0.78);
+    }
+
+    .hero-preview.is-blue {
+      background: rgba(10, 143, 218, 0.78);
+    }
+
+    .hero-preview-text {
+      font-family: "tommyBold", "Raleway", sans-serif;
+      color: var(--dresscode-white);
+      font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .hero-cta {
+      margin-top: 6px;
+      min-width: 230px;
+      font-size: clamp(1.1rem, 2vw, 1.65rem);
+    }
+
+    /* ── Result Section ── */
+    .result-section {
+      align-items: center;
+      text-align: center;
+      gap: 18px;
+      padding-top: 10px;
+    }
+
+    .result-label {
+      font-family: "bungee", sans-serif;
+      color: var(--dresscode-white);
+      font-size: clamp(1.9rem, 4.3vw, 3.9rem);
+      margin: 0;
+      line-height: 1.06;
+    }
+
+    .result-value {
+      font-family: "bungee", sans-serif;
+      font-size: clamp(2rem, 6vw, 4.9rem);
+      margin: 0;
+      line-height: 1.2;
+      color: var(--dresscode-white);
+    }
+
+    .result-badge {
+      padding: 18px 34px;
+      border-radius: 28px;
+      box-shadow: var(--dresscode-shadow);
+      min-width: min(720px, 100%);
+      max-width: 100%;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .result-badge.is-pink {
+      background: var(--dresscode-pink);
+    }
+
+    .result-badge.is-orange {
+      background: var(--dresscode-orange);
+    }
+
+    .result-badge.is-green {
+      background: var(--dresscode-green);
+    }
+
+    .result-badge.is-blue {
+      background: var(--dresscode-blue);
+    }
+
+    .result-palette-img {
+      width: 100%;
+      max-width: 420px;
+      border-radius: 20px;
+      display: block;
+      margin: 0 auto;
+      box-shadow: 0 12px 30px rgba(46, 9, 61, 0.25);
+    }
+
+    .result-copy {
+      font-family: "tommyBold", "Raleway", sans-serif;
+      color: var(--dresscode-white);
+      font-size: clamp(1rem, 1vw, 1.5rem);
+      line-height: 1.35;
+      margin: 0;
+      max-width: 940px;
+    }
+
+    .result-footer {
+      font-family: "tommyBold", "Raleway", sans-serif;
+      color: var(--dresscode-white);
+      font-size: clamp(1rem, 2.1vw, 1.55rem);
+      line-height: 1.45;
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    .result-share-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 22px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #83d4ff 0%, #54b6f3 100%);
+      color: var(--dresscode-white);
+      font-family: "bungee", sans-serif;
+      font-size: clamp(0.9rem, 2vw, 1.3rem);
+      line-height: 1;
+      box-shadow: 0 10px 24px rgba(3, 112, 173, 0.35);
+    }
+
+    /* ── Loading spinner for result ── */
+    .result-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 40px 0;
+      color: var(--dresscode-white);
+      font-family: "tommyRegular", "Raleway", sans-serif;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: var(--dresscode-white);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .dresscode-wrapper {
+        padding-top: 102px;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .quiz-section {
+        padding: 10px 0;
+      }
+
+      .quiz-section:not(.hero-section):not(.result-section) {
+        padding: 26px 18px;
+        border-radius: 22px;
+      }
+
+      .btn-quiz {
+        padding: 9px 22px;
+        font-size: 0.85rem;
+      }
+
+      .hero-tabs {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .hero-tab {
+        width: 100%;
+        font-size: clamp(0.8rem, 4.3vw, 1rem);
+        padding: 12px 10px;
+      }
+
+      .hero-preview {
+        width: 100%;
+        padding: 22px 18px;
+        min-height: 220px;
+        border-radius: 24px;
+        margin-top: 0;
+      }
+
+      .result-badge {
+        min-width: 0;
+        padding: 16px 20px;
+      }
+
+      .result-palette-img {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body id="body">
+
+  <!-- Left bottom decorative image -->
+  <div class="deco-left-bottom">
+    <img src="img/2026/kiribawah.png" alt="decorative left bottom">
+  </div>
+
+  <!-- Top right decorative image -->
+  <div class="deco-top-right">
+    <img src="img/2026/kananatas.png" alt="decorative top right">
+  </div>
+
+  <!-- Navigation Header -->
+  <header id="header">
+    <div class="container">
+      <div id="logo" class="pull-left">
+        <a href="index.html#intro" class="scrollto">
+          <img id="sodfestivalheader" src="img/2026/logo/sodWhite.png" alt="SOD Festival">
+        </a>
+        <nav id="nav-menu-container">
+          <ul class="nav-menu sf-arrows">
+            <li><a href="index.html#tickets">Tickets</a></li>
+            <!-- <li class="menu-has-children"><a class="sf-with-ul" href="javascript:void(0)">Merchandise</a>
+              <ul>
+                <li><a href="merch.html">Order</a></li>
+                <li><a href="track.html">Track</a></li>
+              </ul>
+            </li> -->
+            <li class="menu-active"><a href="dresscode.html">Dress Code</a></li>
+            <li><a href="index.html#venue">Karaoke</a></li>
+            <li><a href="index.html#gallery">Gallery</a></li>
+            <li id="promotorlink"><a href="index.html#promoter">Promoter</a></li>
+            <li><a href="index.html#footer">Contact Us</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Quiz -->
+  <main id="main">
+    <div class="dresscode-wrapper">
+      <div class="dresscode-card" id="quizCard">
+
+        <!-- Progress dots (hidden on section 0 and last) -->
+        <div class="quiz-progress" id="progressDots"></div>
+
+        <!-- ── Section 0: Intro ── -->
+        <div class="quiz-section hero-section active" data-section="0">
+          <img class="hero-logo" src="img/2026/dresscode-intro.png" alt="SOD Festival 2026">
+          <h1 class="hero-title">SAATNYA CARI TAU<br>WARNA FESTIVAL LO!</h1>
+          <div class="hero-tabs" id="heroTabs">
+            <button class="hero-tab" type="button" data-category="Geng Karaoke">GENG KARAOKE</button>
+            <button class="hero-tab" type="button" data-category="Pasukan Joged">PASUKAN JOGED</button>
+            <button class="hero-tab" type="button" data-category="Anak Indie">ANAK INDIE</button>
+            <button class="hero-tab" type="button" data-category="Musik Kalcer">MUSIK KALCER</button>
+          </div>
+          <div class="hero-preview is-hidden" id="heroPreview" aria-hidden="true">
+            <p class="hero-preview-text" id="heroPreviewText"></p>
+          </div>
+          <p class="hero-copy">
+            Setiap orang punya cara sendiri buat nikmatin festival.<br>
+            Jawab beberapa pertanyaan ini yaaa supaya lo bisa tahu WARNA FESTIVAL yang paling lo banget!
+          </p>
+          <button class="btn-quiz btn-next hero-cta" id="nextBtn0" onclick="goNext(0)">LET'S GO!</button>
+        </div>
+
+        <!-- ── Section 1: Nama & Kota ── -->
+        <div class="quiz-section" data-section="1">
+          <label class="quiz-label" for="inputNama">NAMA</label>
+          <input
+            class="quiz-input"
+            type="text"
+            id="inputNama"
+            maxlength="100"
+            placeholder="Nama kamu..."
+            autocomplete="name"
+            oninput="validateInputs()"
+          >
+          <div class="input-error-msg" id="errNama">Nama tidak boleh kosong.</div>
+
+          <label class="quiz-label" for="inputKota">ASAL KOTA</label>
+          <input
+            class="quiz-input"
+            type="text"
+            id="inputKota"
+            maxlength="50"
+            placeholder="Kota asal kamu..."
+            autocomplete="address-level2"
+            oninput="validateInputs()"
+          >
+          <div class="input-error-msg" id="errKota">Asal kota tidak boleh kosong.</div>
+
+          <div class="quiz-nav">
+            <button class="btn-quiz btn-back" onclick="goBack(1)">BACK</button>
+            <button class="btn-quiz btn-next" id="nextBtn1" onclick="goNext(1)" disabled>NEXT</button>
+          </div>
+        </div>
+
+        <!-- ── Section 2: Question 1 ── -->
+        <div class="quiz-section" data-section="2">
+          <h2 class="quiz-title">KALAU DIKASIH KESEMPATAN NGEDATE BARENG MINSOD, KAMU BAKAL AJAK DIA...</h2>
+          <ul class="choices-list" id="choices-2">
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q1" data-val="A" onclick="selectChoice(this, 2)">
+                <span class="choice-letter">A.</span> Nongkrong di kafe estetik
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q1" data-val="B" onclick="selectChoice(this, 2)">
+                <span class="choice-letter">B.</span> Nonton live music
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q1" data-val="C" onclick="selectChoice(this, 2)">
+                <span class="choice-letter">C.</span> Karaoke sampai suara habis
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q1" data-val="D" onclick="selectChoice(this, 2)">
+                <span class="choice-letter">D.</span> Keliling kota tanpa tujuan
+              </button>
+            </li>
+          </ul>
+          <div class="quiz-nav">
+            <button class="btn-quiz btn-back" onclick="goBack(2)">BACK</button>
+            <button class="btn-quiz btn-next" id="nextBtn2" onclick="goNext(2)" disabled>NEXT</button>
+          </div>
+        </div>
+
+        <!-- ── Section 3: Question 2 ── -->
+        <div class="quiz-section" data-section="3">
+          <h2 class="quiz-title">KALAU DATANG KE FESTIVAL MUSIK, KAMU TIPE YANG...</h2>
+          <ul class="choices-list" id="choices-3">
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q2" data-val="A" onclick="selectChoice(this, 3)">
+                <span class="choice-letter">A.</span> Keliling eksplor semua area
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q2" data-val="B" onclick="selectChoice(this, 3)">
+                <span class="choice-letter">B.</span> Langsung kejar barricade
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q2" data-val="C" onclick="selectChoice(this, 3)">
+                <span class="choice-letter">C.</span> Hafal hampir semua lirik
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q2" data-val="D" onclick="selectChoice(this, 3)">
+                <span class="choice-letter">D.</span> Cari spot paling nyaman
+              </button>
+            </li>
+          </ul>
+          <div class="quiz-nav">
+            <button class="btn-quiz btn-back" onclick="goBack(3)">BACK</button>
+            <button class="btn-quiz btn-next" id="nextBtn3" onclick="goNext(3)" disabled>NEXT</button>
+          </div>
+        </div>
+
+        <!-- ── Section 4: Question 3 ── -->
+        <div class="quiz-section" data-section="4">
+          <h2 class="quiz-title">TEMAN-TEMAN PALING SERING BILANG KAMU ITU...</h2>
+          <ul class="choices-list" id="choices-4">
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q3" data-val="A" onclick="selectChoice(this, 4)">
+                <span class="choice-letter">A.</span> Unik dan susah ditebak
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q3" data-val="B" onclick="selectChoice(this, 4)">
+                <span class="choice-letter">B.</span> Gaada capeknya
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q3" data-val="C" onclick="selectChoice(this, 4)">
+                <span class="choice-letter">C.</span> Romantis dan perasa
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q3" data-val="D" onclick="selectChoice(this, 4)">
+                <span class="choice-letter">D.</span> Santai dan bebas
+              </button>
+            </li>
+          </ul>
+          <div class="quiz-nav">
+            <button class="btn-quiz btn-back" onclick="goBack(4)">BACK</button>
+            <button class="btn-quiz btn-next" id="nextBtn4" onclick="goNext(4)" disabled>NEXT</button>
+          </div>
+        </div>
+
+        <!-- ── Section 5: Question 4 ── -->
+        <div class="quiz-section" data-section="5">
+          <h2 class="quiz-title">KALAU LAGI GALAU, KAMU LEBIH PILIH...</h2>
+          <ul class="choices-list" id="choices-5">
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q4" data-val="A" onclick="selectChoice(this, 5)">
+                <span class="choice-letter">A.</span> Cari kesibukan baru biar nggak kepikiran
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q4" data-val="B" onclick="selectChoice(this, 5)">
+                <span class="choice-letter">B.</span> Curhat panjang ke teman
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q4" data-val="C" onclick="selectChoice(this, 5)">
+                <span class="choice-letter">C.</span> Nangis sambil dengerin lagu
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q4" data-val="D" onclick="selectChoice(this, 5)">
+                <span class="choice-letter">D.</span> Jalan-jalan tanpa tujuan
+              </button>
+            </li>
+          </ul>
+          <div class="quiz-nav">
+            <button class="btn-quiz btn-back" onclick="goBack(5)">BACK</button>
+            <button class="btn-quiz btn-next" id="nextBtn5" onclick="goNext(5)" disabled>NEXT</button>
+          </div>
+        </div>
+
+        <!-- ── Section 6: Question 5 ── -->
+        <div class="quiz-section" data-section="6">
+          <h2 class="quiz-title">KALAU TIBA-TIBA PUNYA SATU HARI FULL TANPA TANGGUNG JAWAB, KAMU BAKAL...</h2>
+          <ul class="choices-list" id="choices-6">
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q5" data-val="A" onclick="selectChoice(this, 6)">
+                <span class="choice-letter">A.</span> Coba explore hal baru
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q5" data-val="B" onclick="selectChoice(this, 6)">
+                <span class="choice-letter">B.</span> Ajak teman-teman hangout
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q5" data-val="C" onclick="selectChoice(this, 6)">
+                <span class="choice-letter">C.</span> Maraton playlist favorit
+              </button>
+            </li>
+            <li class="choice-item">
+              <button class="choice-btn" data-q="q5" data-val="D" onclick="selectChoice(this, 6)">
+                <span class="choice-letter">D.</span> Pergi spontan tanpa itinerary
+              </button>
+            </li>
+          </ul>
+          <div class="quiz-nav">
+            <button class="btn-quiz btn-back" onclick="goBack(6)">BACK</button>
+            <button class="btn-quiz btn-next" id="nextBtn6" onclick="goNext(6)" disabled>NEXT</button>
+          </div>
+        </div>
+
+        <!-- ── Section 7: Result ── -->
+        <div class="quiz-section result-section" data-section="7">
+          <!-- Loading state -->
+          <div class="result-loading" id="resultLoading">
+            <div class="spinner"></div>
+            <span>Menghitung warna festival kamu...</span>
+          </div>
+
+          <!-- Result content (hidden until ready) -->
+          <div id="resultContent" style="display:none;">
+            <p class="result-label">WARNA SOD LO ADALAH....</p>
+            <div class="result-badge is-orange" id="resultBadge">
+              <p class="result-value" id="resultName"></p>
+            </div>
+            <p class="result-copy">Pakai warna ini sebagai DRESSCODE lo di Day 2 Livin' SOD Festival 2026 yaa!</p>
+            <img class="result-palette-img" id="resultPaletteImg" src="" alt="Color Palette">
+            <p class="result-footer">
+              Jangan lupa share ini ke story dan mention @sodfestival yaa!
+            </p>
+            <div class="result-share-badge">SEE YOU AT LIVIN' SOD FESTIVAL 2026!</div>
+          </div>
+        </div>
+
+      </div><!-- /.dresscode-card -->
+    </div><!-- /.dresscode-wrapper -->
+  </main>
+
+  <!-- jQuery -->
+  <script src="lib/jquery/jquery.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- Main JS (header scroll behaviour) -->
+  <script src="js/main.js"></script>
+
+  <script>
+    /* ================================================================
+       Dresscode Quiz Logic
+    ================================================================ */
+
+    const TOTAL_SECTIONS = 8; // 0–7
+
+    // Answer map: choice value → category
+    const ANSWER_MAP = {
+      A: 'Musik Kalcer',
+      B: 'Pasukan Joged',
+      C: 'Geng Karaoke',
+      D: 'Anak Indie',
+    };
+
+    const CATEGORY_PREVIEWS = {
+      'Geng Karaoke': {
+        text: 'Lo adalah tipe penonton yang nggak pernah setengah-setengah kalau dateng ke festival. Hampir semua lagu lo hafal! Buat lo, festival paling seru itu adalah festival yang bisa bikin semua orang ikut karaoke bareng!',
+        previewClass: 'is-pink',
+      },
+      'Pasukan Joged': {
+        text: 'Mau lagu favorit atau lagu yang pertama kali lo denger, selama beat-nya masuk, badan lo pasti langsung ikutan gerak. Energi lo seolah nggak ada habisnya. Lo selalu percaya kalau festival yang seru itu bisa bikin kaki lo capek karena kebanyakan joget.',
+        previewClass: 'is-orange',
+      },
+      'Anak Indie': {
+        text: 'Lo itu orang yang selalu mencari musik yang paling relate sama diri lo. Bukan soal lagi viral atau nggak, tapi soal lagu yang bisa mewakili perasaan, cerita, dan personality lo. Buat lo, festival adalah tempat terbaik buat menemukan karya yang bakal jadi soundtrack hidup lo.',
+        previewClass: 'is-green',
+      },
+      'Musik Kalcer': {
+        text: 'Lo selalu selangkah lebih depan soal musik. Sebelum lagu atau band itu viral, biasanya lo udah lebih dulu masukin ke playlist. Buat lo, festival adalah tempat buat ketemu musisi favorit berikutnya dan pulang dengan rekomendasi yang belum tentu teman-teman lo tahu.',
+        previewClass: 'is-blue',
+      },
+    };
+
+    // Hybrid result rules (key = sorted pair joined by '+')
+    const HYBRID_RULES = {
+      'Musik Kalcer+Pasukan Joged': 'Pasukan Joged',
+      'Musik Kalcer+Geng Karaoke': 'Geng Karaoke',
+      'Musik Kalcer+Anak Indie':   'Anak Indie',
+      'Pasukan Joged+Geng Karaoke': 'Geng Karaoke',
+      'Pasukan Joged+Anak Indie':  'Pasukan Joged',
+      'Geng Karaoke+Anak Indie':   'Geng Karaoke',
+    };
+
+    // Category → palette image filename
+    const PALETTE_IMAGES = {
+      'Musik Kalcer': 'img/dresscode/musik_kalcer.png',
+      'Pasukan Joged': 'img/dresscode/pasukan_joged.png',
+      'Geng Karaoke':  'img/dresscode/geng_karaoke.png',
+      'Anak Indie':    'img/dresscode/anak_indie.png',
+    };
+
+    const RESULT_THEME = {
+      'Geng Karaoke': 'is-pink',
+      'Pasukan Joged': 'is-orange',
+      'Anak Indie': 'is-green',
+      'Musik Kalcer': 'is-blue',
+    };
+
+    // Category order for hybrid key sorting
+    const CATEGORY_ORDER = ['Musik Kalcer', 'Pasukan Joged', 'Geng Karaoke', 'Anak Indie'];
+
+    // State
+    let currentSection = 0;
+    const answers = {}; // { q1: 'A', q2: 'B', ... }
+    let activePreviewCategory = null;
+
+    function setHeroPreview(category) {
+      const preview = CATEGORY_PREVIEWS[category];
+      const previewEl = document.getElementById('heroPreview');
+      const textEl = document.getElementById('heroPreviewText');
+      const tabsContainer = document.getElementById('heroTabs');
+      const tabs = document.querySelectorAll('.hero-tab');
+
+      if (!previewEl || !textEl || !preview || !tabsContainer) return;
+
+      previewEl.classList.remove('is-hidden');
+      previewEl.setAttribute('aria-hidden', 'false');
+      previewEl.classList.remove('is-pink', 'is-orange', 'is-green', 'is-blue');
+      previewEl.classList.add(preview.previewClass);
+      textEl.textContent = preview.text;
+
+      const activeTab = tabsContainer.querySelector(`.hero-tab[data-category="${category}"]`);
+      if (window.matchMedia('(max-width: 600px)').matches && activeTab) {
+        activeTab.insertAdjacentElement('afterend', previewEl);
+      } else {
+        tabsContainer.insertAdjacentElement('afterend', previewEl);
+      }
+
+      tabs.forEach((tab) => {
+        tab.classList.toggle('active', tab.dataset.category === category);
+      });
+
+      activePreviewCategory = category;
+    }
+
+    function clearHeroPreview() {
+      const previewEl = document.getElementById('heroPreview');
+      const textEl = document.getElementById('heroPreviewText');
+      const tabs = document.querySelectorAll('.hero-tab');
+
+      if (!previewEl || !textEl) return;
+
+      previewEl.classList.add('is-hidden');
+      previewEl.setAttribute('aria-hidden', 'true');
+      previewEl.classList.remove('is-pink', 'is-orange', 'is-green', 'is-blue');
+      textEl.textContent = '';
+
+      tabs.forEach((tab) => {
+        tab.classList.remove('active');
+      });
+
+      activePreviewCategory = null;
+    }
+
+    function toggleHeroPreview(category) {
+      if (activePreviewCategory === category) {
+        clearHeroPreview();
+        return;
+      }
+
+      setHeroPreview(category);
+    }
+
+    function initializeHeroTabs() {
+      const tabs = document.querySelectorAll('.hero-tab');
+      tabs.forEach((tab) => {
+        tab.addEventListener('mouseenter', () => setHeroPreview(tab.dataset.category));
+        tab.addEventListener('focus', () => setHeroPreview(tab.dataset.category));
+        tab.addEventListener('click', () => setHeroPreview(tab.dataset.category));
+      });
+
+      clearHeroPreview();
+    }
+
+    /* ── Progress dots ── */
+    function buildProgressDots() {
+      const container = document.getElementById('progressDots');
+      container.innerHTML = '';
+      // Show dots for sections 1–6 (question sections + name input)
+      for (let i = 1; i <= 6; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'progress-dot';
+        dot.id = `dot-${i}`;
+        container.appendChild(dot);
+      }
+    }
+
+    function updateProgressDots(sectionIndex) {
+      const container = document.getElementById('progressDots');
+      // Hide dots on intro and result sections
+      if (sectionIndex === 0 || sectionIndex === 7) {
+        container.style.display = 'none';
+        return;
+      }
+      container.style.display = 'flex';
+      for (let i = 1; i <= 6; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        if (!dot) continue;
+        dot.classList.remove('active', 'done');
+        if (i < sectionIndex) {
+          dot.classList.add('done');
+        } else if (i === sectionIndex) {
+          dot.classList.add('active');
+        }
+      }
+    }
+
+    function updateDecorationsVisibility(sectionIndex) {
+      const leftDeco = document.querySelector('.deco-left-bottom');
+      const rightDeco = document.querySelector('.deco-top-right');
+      const shouldHide = sectionIndex === 7;
+
+      [leftDeco, rightDeco].forEach((deco) => {
+        if (!deco) return;
+        deco.style.display = shouldHide ? 'none' : '';
+      });
+    }
+
+    function updateHeaderScrolledState(sectionIndex) {
+      const header = document.getElementById('header');
+      if (!header) return;
+
+      const shouldBeScrolled = sectionIndex === 7 || window.scrollY > 100;
+      header.classList.toggle('header-scrolled', shouldBeScrolled);
+    }
+
+    /* ── Navigation ── */
+    function goTo(targetIndex, direction) {
+      const sections = document.querySelectorAll('.quiz-section');
+      const current = sections[currentSection];
+      const target  = sections[targetIndex];
+
+      // Animate current out
+      current.classList.remove('active');
+      current.classList.add(direction === 'forward' ? 'exit-left' : 'exit-right');
+
+      // Wait a tick then activate target
+      requestAnimationFrame(() => {
+        // Reset target position
+        target.style.transform = direction === 'forward' ? 'translateX(60px)' : 'translateX(-60px)';
+        target.style.opacity = '0';
+        target.style.pointerEvents = 'none';
+
+        requestAnimationFrame(() => {
+          // Trigger transition
+          target.style.transition = 'opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1)';
+          target.style.transform = 'translateX(0)';
+          target.style.opacity   = '1';
+          target.style.pointerEvents = 'all';
+          target.classList.add('active');
+
+          // Clean up previous after transition
+          setTimeout(() => {
+            current.classList.remove('exit-left', 'exit-right');
+            current.style.transform = '';
+            current.style.opacity   = '';
+            current.style.pointerEvents = '';
+            current.style.transition = '';
+            target.style.transition = '';
+            target.style.transform  = '';
+            target.style.opacity    = '';
+            target.style.pointerEvents = '';
+          }, 460);
+        });
+      });
+
+      currentSection = targetIndex;
+      updateProgressDots(targetIndex);
+      updateDecorationsVisibility(targetIndex);
+      updateHeaderScrolledState(targetIndex);
+
+      // Reset card height jitter by scrolling card into view
+      document.getElementById('quizCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function goNext(sectionIndex) {
+      if (sectionIndex === 1 && !validateInputsStrict()) return;
+      const next = sectionIndex + 1;
+      if (next >= TOTAL_SECTIONS) return;
+
+      if (next === 7) {
+        goTo(next, 'forward');
+        showResult();
+      } else {
+        goTo(next, 'forward');
+      }
+    }
+
+    function goBack(sectionIndex) {
+      if (sectionIndex <= 0) return;
+      goTo(sectionIndex - 1, 'backward');
+    }
+
+    /* ── Input validation ── */
+    function validateInputs() {
+      const nama = document.getElementById('inputNama').value.trim();
+      const kota = document.getElementById('inputKota').value.trim();
+      const nextBtn = document.getElementById('nextBtn1');
+      nextBtn.disabled = !(nama && kota);
+    }
+
+    function validateInputsStrict() {
+      const nama = document.getElementById('inputNama').value.trim();
+      const kota = document.getElementById('inputKota').value.trim();
+
+      const errNama = document.getElementById('errNama');
+      const errKota = document.getElementById('errKota');
+      const inputNama = document.getElementById('inputNama');
+      const inputKota = document.getElementById('inputKota');
+
+      let valid = true;
+
+      if (!nama) {
+        inputNama.classList.add('input-error');
+        errNama.style.display = 'block';
+        valid = false;
+      } else {
+        inputNama.classList.remove('input-error');
+        errNama.style.display = 'none';
+      }
+
+      if (!kota) {
+        inputKota.classList.add('input-error');
+        errKota.style.display = 'block';
+        valid = false;
+      } else {
+        inputKota.classList.remove('input-error');
+        errKota.style.display = 'none';
+      }
+
+      return valid;
+    }
+
+    /* ── Choice selection ── */
+    function selectChoice(btn, sectionIndex) {
+      const qKey = btn.dataset.q;
+      // Deselect all buttons in this section
+      const allBtns = document.querySelectorAll(`#choices-${sectionIndex} .choice-btn`);
+      allBtns.forEach(b => b.classList.remove('selected'));
+      // Select clicked
+      btn.classList.add('selected');
+      // Store answer
+      answers[qKey] = btn.dataset.val;
+      // Enable next button
+      const nextBtn = document.getElementById(`nextBtn${sectionIndex}`);
+      if (nextBtn) nextBtn.disabled = false;
+    }
+
+    /* ── Result calculation ── */
+    function calculateResult() {
+      const counts = {
+        'Musik Kalcer': 0,
+        'Pasukan Joged': 0,
+        'Geng Karaoke': 0,
+        'Anak Indie': 0,
+      };
+
+      ['q1', 'q2', 'q3', 'q4', 'q5'].forEach(q => {
+        const val = answers[q];
+        if (val && ANSWER_MAP[val]) {
+          counts[ANSWER_MAP[val]]++;
+        }
+      });
+
+      const maxCount = Math.max(...Object.values(counts));
+      const topCategories = CATEGORY_ORDER.filter(c => counts[c] === maxCount);
+
+      if (topCategories.length === 1) {
+        // DOMINANT RESULT
+        return topCategories[0];
+      }
+
+      if (topCategories.length === 2 && maxCount === 2) {
+        // HYBRID RESULT [2+2+1]
+        const sortedPair = topCategories
+          .slice()
+          .sort((a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b));
+        const key = sortedPair.join('+');
+        return HYBRID_RULES[key] || 'Geng Karaoke';
+      }
+
+      // BALANCED RESULT — fallback
+      return 'Geng Karaoke';
+    }
+
+    function getBackendUrl() {
+      const origin = window.location.origin;
+      if (origin.includes('sodtix.com') || origin.includes('sodfestival')) {
+        return 'https://sodtix.com';
+      }
+      return 'https://sodtix.com';
+    }
+
+    async function showResult() {
+      const resultLoading = document.getElementById('resultLoading');
+      const resultContent = document.getElementById('resultContent');
+      resultLoading.style.display = 'flex';
+      resultContent.style.display = 'none';
+
+      const result = calculateResult();
+
+      // Build API payload
+      const payload = {
+        nama: document.getElementById('inputNama').value.trim(),
+        kota: document.getElementById('inputKota').value.trim(),
+        q1: answers.q1 || '',
+        q2: answers.q2 || '',
+        q3: answers.q3 || '',
+        q4: answers.q4 || '',
+        q5: answers.q5 || '',
+        dresscode: result,
+      };
+
+      // Submit to backend (fire-and-forget; don't block UX on failure)
+      try {
+        await fetch(`${getBackendUrl()}/api/v1/public/dresscode`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } catch (_) {
+        // Silently ignore network errors — result display continues
+      }
+
+      // Populate result UI
+      document.getElementById('resultName').textContent = result;
+      document.getElementById('resultPaletteImg').src = PALETTE_IMAGES[result] || '';
+      document.getElementById('resultPaletteImg').alt = result + ' Color Palette';
+      const resultBadge = document.getElementById('resultBadge');
+      if (resultBadge) {
+        resultBadge.classList.remove('is-pink', 'is-orange', 'is-green', 'is-blue');
+        resultBadge.classList.add(RESULT_THEME[result] || 'is-orange');
+      }
+
+      resultLoading.style.display = 'none';
+      resultContent.style.display = 'block';
+    }
+
+    /* ── Choice randomization ── */
+    const QUESTION_CHOICES = {
+      2: [ // Section 2, Q1
+        { text: "Nongkrong di kafe estetik", val: "A" },
+        { text: "Nonton live music", val: "B" },
+        { text: "Karaoke sampai suara habis", val: "C" },
+        { text: "Keliling kota tanpa tujuan", val: "D" },
+      ],
+      3: [ // Section 3, Q2
+        { text: "Keliling eksplor semua area", val: "A" },
+        { text: "Langsung kejar barricade", val: "B" },
+        { text: "Hafal hampir semua lirik", val: "C" },
+        { text: "Cari spot paling nyaman", val: "D" },
+      ],
+      4: [ // Section 4, Q3
+        { text: "Unik dan susah ditebak", val: "A" },
+        { text: "Gaada capeknya", val: "B" },
+        { text: "Romantis dan perasa", val: "C" },
+        { text: "Santai dan bebas", val: "D" },
+      ],
+      5: [ // Section 5, Q4
+        { text: "Cari kesibukan baru biar nggak kepikiran", val: "A" },
+        { text: "Curhat panjang ke teman", val: "B" },
+        { text: "Nangis sambil dengerin lagu", val: "C" },
+        { text: "Jalan-jalan tanpa tujuan", val: "D" },
+      ],
+      6: [ // Section 6, Q5
+        { text: "Coba explore hal baru", val: "A" },
+        { text: "Ajak teman-teman hangout", val: "B" },
+        { text: "Maraton playlist favorit", val: "C" },
+        { text: "Pergi spontan tanpa itinerary", val: "D" },
+      ],
+    };
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function initializeChoices() {
+      for (const [sectionId, origChoices] of Object.entries(QUESTION_CHOICES)) {
+        const shuffled = shuffleArray(origChoices);
+        const container = document.getElementById(`choices-${sectionId}`);
+        if (!container) return;
+
+        const items = container.querySelectorAll('.choice-item');
+        const displayLetters = ['A', 'B', 'C', 'D'];
+        
+        shuffled.forEach((choice, idx) => {
+          const item = items[idx];
+          const btn = item.querySelector('.choice-btn');
+          
+          // Keep data-val as original choice.val (A, B, C, or D) for correct answer mapping
+          btn.dataset.val = choice.val;
+          // Display letter is always in order: A, B, C, D (ascending)
+          // But the text is randomized
+          btn.innerHTML = `<span class="choice-letter">${displayLetters[idx]}.</span> ${choice.text}`;
+        });
+      }
+    }
+
+    /* ── Init ── */
+    document.addEventListener('DOMContentLoaded', () => {
+      buildProgressDots();
+      updateProgressDots(0);
+      updateDecorationsVisibility(0);
+      updateHeaderScrolledState(0);
+      initializeHeroTabs();
+      initializeChoices();
+    });
+  </script>
+
+</body>
+</html>
