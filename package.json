@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && scp -i Oracle.key -r ./dist/* ubuntu@168.110.214.80:~/test-sod"
+    "deploy": "npm run build && scp -i Oracle.key -r ./dist/* ubuntu@168.110.214.80:~/test-sod",
+    "deploy:prod": "npm run build && scp -i Oracle2.key -r ./dist/* ubuntu@168.110.215.133:~/sodfestival-build"
   },
   "devDependencies": {
     "terser": "^5.46.0",
