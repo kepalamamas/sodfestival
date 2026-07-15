@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WH0G4S2CB8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-WH0G4S2CB8');
+  </script>
+  <meta charset="utf-8">
+  <title>Volunteer - SOD Festival</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="Cek status volunteer SOD Festival 2026." name="description">
+  <meta content="SOD Festival, Volunteer, TIMSOD, Sounds of Downtown" name="keywords">
+
+  <!-- Favicons -->
+  <link href="img/sodfavicon.png" rel="icon">
+  <link href="img/sodfavicon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i|Raleway:300,400,500,700,800" rel="stylesheet">
+
+  <!-- Bootstrap CSS -->
+  <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Main Stylesheets -->
+  <link href="css/style.css" rel="stylesheet">
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    .volunteer-section {
+      padding: 130px 0 80px;
+      min-height: 100vh;
+    }
+
+    .vol-title {
+      font-family: "bungee", sans-serif;
+      font-size: 2rem;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 8px;
+      letter-spacing: 0.03em;
+    }
+
+    .vol-subtitle {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 32px;
+      font-size: 1rem;
+    }
+
+    .vol-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
+      max-width: 560px;
+      margin: 0 auto 48px;
+    }
+
+    .vol-label {
+      font-family: 'tommyBold', sans-serif;
+      font-size: 0.9rem;
+      color: #4a5568;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .vol-input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+
+    .vol-input:focus {
+      outline: none;
+      border-color: #5a1d70;
+    }
+
+    .vol-btn {
+      background: linear-gradient(135deg, #5a1d70, #8b3a9f);
+      color: #fff;
+      font-family: "bungee", sans-serif;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 40px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      letter-spacing: 0.05em;
+      margin-top: 8px;
+    }
+
+    .vol-btn:hover { opacity: 0.9; }
+    .vol-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .vol-error {
+      background: #FFF5F5;
+      border: 1px solid #FEB2B2;
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #C53030;
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.95rem;
+    }
+
+    /* ─── Result image overlay ─── */
+    .result-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .result-img-container {
+      position: relative;
+      display: block;
+      width: 100%;
+    }
+
+    .result-img-container img.result-bg {
+      width: 100%;
+      display: block;
+    }
+
+    .result-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .field-value {
+      position: absolute;
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 700;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       LAPTOP — accept_laptop.png & reject_laptop.png (~1507 × 768 px)
+       Labels are at: Nama/HP row ≈ top 45%, Posisi ≈ 63%, Email ≈ 82%
+       Values go BELOW each label.
+    ───────────────────────────────────────────────────────────────────── */
+    .laptop-nama {
+      top: 47%;
+      left: 4%;
+      max-width: 50%;
+      color: #6B3694;
+      font-size: clamp(9px, 1.4vw, 15px);
+    }
+
+    .laptop-hp {
+      top: 47%;
+      left: 60%;
+      max-width: 38%;
+      color: #6B3694;
+      font-size: clamp(9px, 1.4vw, 15px);
+    }
+
+    .laptop-posisi {
+      top: 67%;
+      left: 4%;
+      max-width: 50%;
+      color: #6B3694;
+      font-size: clamp(9px, 1.4vw, 15px);
+    }
+
+    .laptop-email {
+      top: 85%;
+      left: 4%;
+      max-width: 55%;
+      color: #6B3694;
+      font-size: clamp(9px, 1.4vw, 15px);
+    }
+
+    /* Reject laptop — same layout, red text */
+    .reject .laptop-nama,
+    .reject .laptop-hp,
+    .reject .laptop-posisi,
+    .reject .laptop-email {
+      color: #D32F2F;
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       ACCEPT MOBILE — accept_mobile.png (~831 × 1340 px, portrait)
+       Labels: Nama ≈ 39%, Posisi ≈ 50%, Email ≈ 61%, HP ≈ 72%
+       Values go BELOW each label, left-aligned with the label.
+    ───────────────────────────────────────────────────────────────────── */
+    .mobile-nama {
+      top: 40%;
+      left: 10.5%;
+      max-width: 82%;
+      color: #6B3694;
+      font-size: clamp(9px, 3.2vw, 18px);
+    }
+
+    .mobile-posisi {
+      top: 50%;
+      left: 10.5%;
+      max-width: 82%;
+      color: #6B3694;
+      font-size: clamp(9px, 3.2vw, 18px);
+    }
+
+    .mobile-email {
+      top: 60%;
+      left: 10.5%;
+      max-width: 82%;
+      color: #6B3694;
+      font-size: clamp(9px, 3.2vw, 18px);
+    }
+
+    .mobile-hp {
+      top: 70%;
+      left: 10.5%;
+      max-width: 82%;
+      color: #6B3694;
+      font-size: clamp(9px, 3.2vw, 18px);
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       REJECT MOBILE — reject_mobile.png has a taller red header (~42% vs
+       accept's ~33%), so all labels are shifted down ~8-9%.
+       Values go BELOW each label.
+    ───────────────────────────────────────────────────────────────────── */
+    .reject .mobile-nama,
+    .reject .mobile-posisi,
+    .reject .mobile-email,
+    .reject .mobile-hp {
+      color: #D32F2F;
+    }
+
+    .reject .mobile-nama { top: 46%; }
+    .reject .mobile-email { top: 68%; }
+    .reject .mobile-hp { top: 79%; }
+
+    @media (max-width: 767px) {
+      .vol-card {
+        padding: 20px;
+        border-radius: 14px;
+      }
+
+      .vol-title {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body id="body">
+
+  <!-- Left bottom decorative image -->
+  <div class="deco-left-bottom">
+    <img src="img/2026/kiribawah.png" alt="">
+  </div>
+
+  <!-- Top right decorative image -->
+  <div class="deco-top-right">
+    <img src="img/2026/kananatas.png" alt="">
+  </div>
+
+  <!-- Navigation Header -->
+  <header id="header">
+    <div class="container">
+      <div id="logo" class="pull-left">
+        <a href="index.html#intro" class="scrollto"><img id="sodfestivalheader" src="img/2026/logo/sodWhite.png" alt="SOD Festival"></a>
+        <nav id="nav-menu-container">
+          <ul class="nav-menu">
+            <li><a href="index.html#tickets">Tickets</a></li>
+            <li class="menu-has-children"><a href="javascript:void(0)">Merchandise</a>
+              <ul>
+                <li><a href="merch.html">Order</a></li>
+                <li><a href="track.html">Track</a></li>
+              </ul>
+            </li>
+            <li><a href="dresscode.html">Dress Code</a></li>
+            <li><a href="index.html#venue">Karaoke</a></li>
+            <li><a href="index.html#gallery">Gallery</a></li>
+            <li id="promotorlink"><a href="index.html#promoter">Promoter</a></li>
+            <li><a href="index.html#footer">Contact Us</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Section -->
+  <main id="main">
+    <section class="volunteer-section" x-data="volunteerApp">
+      <div class="container">
+
+        <h1 class="vol-title">CEK STATUS VOLUNTEER</h1>
+        <p class="vol-subtitle">Masukkan email kamu untuk mengecek status sebagai TIMSOD 2026</p>
+
+        <!-- Search Card -->
+        <div class="vol-card">
+          <div class="mb-3">
+            <label class="vol-label" for="vol-email-input">Email</label>
+            <input
+              id="vol-email-input"
+              type="email"
+              class="vol-input"
+              placeholder="your@email.com"
+              x-model="email"
+              @keydown.enter="check()"
+            >
+          </div>
+          <button class="vol-btn" @click="check()" :disabled="isLoading">
+            <span x-show="!isLoading">CHECK</span>
+            <span x-show="isLoading">Checking...</span>
+          </button>
+
+          <template x-if="error">
+            <div class="vol-error">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              <span x-text="error"></span>
+            </div>
+          </template>
+        </div>
+
+        <!-- Result Display -->
+        <template x-if="result">
+          <div class="result-wrapper">
+
+            <!-- Desktop (md and up) — landscape image -->
+            <div class="d-none d-md-block">
+              <div class="result-img-container" :class="result.position ? '' : 'reject'">
+                <img
+                  :src="result.position ? 'img/2026/accept_laptop.png' : 'img/2026/reject_laptop.png'"
+                  class="result-bg"
+                  alt="Volunteer Status"
+                >
+                <div class="result-overlay">
+                  <span class="field-value laptop-nama"   x-text="result.name"></span>
+                  <span class="field-value laptop-hp"     x-text="result.mobile_no"></span>
+                  <span class="field-value laptop-posisi" x-text="result.position"></span>
+                  <span class="field-value laptop-email"  x-text="result.email"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mobile (below md) — portrait image -->
+            <div class="d-block d-md-none">
+              <div class="result-img-container" :class="result.position ? '' : 'reject'">
+                <img
+                  :src="result.position ? 'img/2026/accept_mobile.png' : 'img/2026/reject_mobile.png'"
+                  class="result-bg"
+                  alt="Volunteer Status"
+                >
+                <div class="result-overlay">
+                  <span class="field-value mobile-nama"   x-text="result.name"></span>
+                  <span class="field-value mobile-posisi" x-text="result.position"></span>
+                  <span class="field-value mobile-email"  x-text="result.email"></span>
+                  <span class="field-value mobile-hp"     x-text="result.mobile_no"></span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </template>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer id="footer" class="mt-5">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 col-md-12 footer-contact text-center">
+            <h2 class="text-hubungi-minsod">Hubungi MINSOD!</h2>
+            <h6 style="color: white;"><strong>CUSTOMER SERVICE</strong></h6>
+            <p><a style="color: orange;" href="mailto:sodfestival@gmail.com">sodfestival@gmail.com</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container text-center py-3">
+      <div class="copyright">
+        Copyright &copy; 2026 <strong>SOD FESTIVAL</strong> All Rights Reserved
+      </div>
+    </div>
+  </footer>
+
+  <a href="#" class="back-to-top"><img src="img/arrow.png" alt="arrow" class="ticket-img"></a>
+
+  <!-- JavaScript Libraries -->
+  <script src="lib/jquery/jquery.min.js"></script>
+  <script src="lib/jquery/jquery-migrate.min.js"></script>
+  <script src="lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="lib/easing/easing.min.js"></script>
+  <script src="lib/superfish/hoverIntent.js"></script>
+  <script src="lib/superfish/superfish.min.js"></script>
+  <script src="lib/wow/wow.min.js"></script>
+  <script src="lib/venobox/venobox.min.js"></script>
+  <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("volunteerApp", () => ({
+        email: "",
+        isLoading: false,
+        result: null,
+        error: null,
+
+        async check() {
+          const email = this.email.trim();
+          if (!email) {
+            this.error = "Harap masukkan email terlebih dahulu.";
+            return;
+          }
+
+          this.isLoading = true;
+          this.result = null;
+          this.error = null;
+
+          try {
+            const url = "https://sodtix.com/api/v1/public/volunteer?email=" + encodeURIComponent(email);
+            const res = await fetch(url);
+
+            if (!res.ok) {
+              this.error = "Terjadi kesalahan pada server. Silakan coba lagi.";
+              return;
+            }
+
+            const json = await res.json();
+
+            if (!json.success || !Array.isArray(json.data) || json.data.length === 0) {
+              this.error = "Data volunteer tidak ditemukan untuk email ini.";
+              return;
+            }
+
+            const vol = json.data[0];
+            this.result = {
+              name:      vol.name      || "",
+              position:  vol.position  || "",
+              email:     vol.email     || "",
+              mobile_no: vol.mobile_no || "",
+              event_name: vol.event_name || "",
+            };
+          } catch (err) {
+            this.error = "Tidak dapat terhubung ke server. Periksa koneksi internet kamu.";
+          } finally {
+            this.isLoading = false;
+          }
+        }
+      }));
+    });
+  </script>
+
+</body>
+</html>
