@@ -76,7 +76,8 @@ export default defineConfig(({ mode }) => {
           main: resolve(__dirname, 'index.html'),
           merch: resolve(__dirname, 'merch.html'),
           track: resolve(__dirname, 'track.html'),
-          dresscode: resolve(__dirname, 'dresscode.html')
+          dresscode: resolve(__dirname, 'dresscode.html'),
+          volunteer: resolve(__dirname, 'volunteer.html')
         }
       },
       // Optimize assets
