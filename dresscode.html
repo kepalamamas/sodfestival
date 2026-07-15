@@ -591,16 +591,6 @@
 
 <body id="body">
 
-  <!-- Left bottom decorative image -->
-  <div class="deco-left-bottom">
-    <img src="img/2026/kiribawah.png" alt="decorative left bottom">
-  </div>
-
-  <!-- Top right decorative image -->
-  <div class="deco-top-right">
-    <img src="img/2026/kananatas.png" alt="decorative top right">
-  </div>
-
   <!-- Navigation Header -->
   <header id="header">
     <div class="container">
@@ -1046,17 +1036,6 @@
       }
     }
 
-    function updateDecorationsVisibility(sectionIndex) {
-      const leftDeco = document.querySelector('.deco-left-bottom');
-      const rightDeco = document.querySelector('.deco-top-right');
-      const shouldHide = sectionIndex === 7;
-
-      [leftDeco, rightDeco].forEach((deco) => {
-        if (!deco) return;
-        deco.style.display = shouldHide ? 'none' : '';
-      });
-    }
-
     function updateHeaderScrolledState(sectionIndex) {
       const header = document.getElementById('header');
       if (!header) return;
@@ -1107,7 +1086,6 @@
 
       currentSection = targetIndex;
       updateProgressDots(targetIndex);
-      updateDecorationsVisibility(targetIndex);
       updateHeaderScrolledState(targetIndex);
 
       // Reset card height jitter by scrolling card into view
@@ -1346,7 +1324,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       buildProgressDots();
       updateProgressDots(0);
-      updateDecorationsVisibility(0);
       updateHeaderScrolledState(0);
       initializeHeroTabs();
       initializeChoices();
