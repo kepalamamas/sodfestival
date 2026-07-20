@@ -2355,6 +2355,10 @@ hr.solid {
   background-color: #c2551a !important;
 }
 
+.ticket-detail-card-vip {
+  background-color: #1e4f7a !important;
+}
+
 .ticket-detail-header {
   background: #fff;
   color: #dd6e47;

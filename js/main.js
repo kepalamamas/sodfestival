@@ -238,34 +238,63 @@ jQuery(document).ready(function ($) {
 
   // custom code
 
+  function setTicketButtonsDisabled($buttons, disabled) {
+    $buttons.each(function () {
+      if (disabled) {
+        $(this).prop('disabled', true).attr('disabled', 'disabled').attr('aria-disabled', 'true');
+      } else {
+        $(this).prop('disabled', false).removeAttr('disabled').attr('aria-disabled', 'false');
+      }
+    });
+  }
+
   // PRESALE2 BUY BUTTON: fetch status and toggle
   var $ticketButtons = $('.ticket-open-button');
-  if (!$ticketButtons.length) return;
+  if ($ticketButtons.length) {
+    setTicketButtonsDisabled($ticketButtons, true);
 
-  // Ensure all matching buttons are disabled until we know the status
-  $ticketButtons.each(function () {
-    $(this).prop('disabled', true).attr('disabled', 'disabled').attr('aria-disabled', 'true');
-  });
+    fetch('https://sodtix.com/api/v1/public-events/link-url/3be7a6aa')
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        if (json && json.success && json.data && json.data.isOpen) {
+          var url = json.data.link_url || null;
+          if (url) {
+            setTicketButtonsDisabled($ticketButtons, false);
+            $ticketButtons.off('click').on('click', function () { window.open(url, '_blank'); });
+          }
+        } else {
+          setTicketButtonsDisabled($ticketButtons, true);
+        }
+      })
+      .catch(function (err) {
+        console.error('Error fetching presale2 status', err);
+      });
+  }
 
-  fetch('https://sodtix.com/api/v1/public-events/link-url/3be7a6aa')
+  function initVipUpgradeButton() {
+    var $vipButtons = $('.vip-upgrade-open-button');
+    if (!$vipButtons.length) return;
+
+    setTicketButtonsDisabled($vipButtons, true);
+
+    fetch('https://sodtix.com/api/v1/public-events/link-url/Wqox19M')
     .then(function (res) { return res.json(); })
     .then(function (json) {
       if (json && json.success && json.data && json.data.isOpen) {
         var url = json.data.link_url || null;
         if (url) {
-          $ticketButtons.each(function () {
-            $(this).prop('disabled', false).removeAttr('disabled').attr('aria-disabled', 'false');
-          });
-          $ticketButtons.off('click').on('click', function () { window.open(url, '_blank'); });
+          setTicketButtonsDisabled($vipButtons, false);
+          $vipButtons.off('click').on('click', function () { window.open(url, '_blank'); });
         }
       } else {
-        $ticketButtons.each(function () {
-          $(this).prop('disabled', true).attr('disabled', 'disabled').attr('aria-disabled', 'true');
-        });
+        setTicketButtonsDisabled($vipButtons, true);
       }
     })
     .catch(function (err) {
-      console.error('Error fetching presale2 status', err);
+      console.error('Error fetching VIP upgrade status', err);
     });
+  }
+
+  initVipUpgradeButton();
 
 });
