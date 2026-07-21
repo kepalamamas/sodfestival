@@ -2359,6 +2359,10 @@ hr.solid {
   background-color: #57ace5 !important;
 }
 
+.ticket-detail-card-last {
+  background-color: #00a878 !important;
+}
+
 .ticket-detail-header {
   background: #fff;
   color: #dd6e47;
@@ -2424,6 +2428,7 @@ hr.solid {
 
 .ticket-detail-body .available {
   color: #fff;
+  margin-top: 10px;
   margin-bottom: 18px;
   font-size: 14px;
 }
