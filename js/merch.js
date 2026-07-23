@@ -11,13 +11,17 @@ document.addEventListener("alpine:init", () => {
 
     addItem(product) {
       const existing = this.items.find((i) => i.product_id === product.id);
+      const maxAllowed = Number(product.max_quantity || 10);
       if (existing) {
         // Keep stock synced with latest fetched product quantity.
         existing.stock = Number(product.quantity || 0);
-        if (existing.quantity < product.quantity) {
+        existing.max_quantity = maxAllowed;
+        if (existing.quantity >= maxAllowed) {
+          alert(`Maximum allowed purchase quantity is ${maxAllowed} per item`);
+        } else if (existing.quantity < product.quantity) {
           existing.quantity++;
         } else {
-          alert(`Maximum available stock reached (${product.quantity})`);
+          alert("Product is out of stock");
         }
       } else {
         this.items.push({
@@ -29,6 +33,7 @@ document.addEventListener("alpine:init", () => {
           merchant_name: product.merchant_name,
           quantity: 1,
           stock: product.quantity,
+          max_quantity: maxAllowed,
           weight: product.weight || 500,
           length: product.length || 0,
           width: product.width || 0,
@@ -50,11 +55,13 @@ document.addEventListener("alpine:init", () => {
           this.removeItem(productId);
         } else {
           const maxStock = Number(item.stock || 0);
-          item.quantity = Math.min(qty, maxStock);
-          this.save();
-          if (qty > maxStock) {
-            alert(`Maximum available stock reached (${maxStock})`);
+          const maxAllowed = Number(item.max_quantity || 10);
+          const limit = Math.min(maxStock, maxAllowed);
+          if (qty > limit) {
+            alert(`Maximum allowed quantity is ${limit}`);
           }
+          item.quantity = Math.min(qty, limit);
+          this.save();
         }
       }
     },

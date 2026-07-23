@@ -125,9 +125,6 @@
                     </div>
                     <div>
                       <div class="merch-card-price" x-text="formatRupiah(product.price)"></div>
-                      <template x-if="product.quantity > 0 && product.quantity < 100">
-                        <div class="small text-danger font-weight-bold mb-1" x-text="'Only ' + product.quantity + ' left in stock!'"></div>
-                      </template>
                       <template x-if="getCartQuantity(product.id) === 0">
                         <button 
                           class="btn btn-sod-orange" 
@@ -447,9 +444,6 @@
               </template>
               
               <div class="h3 font-weight-bold text-primary mb-3" x-text="formatRupiah(detailProduct?.price)"></div>
-              <template x-if="detailProduct?.quantity > 0 && detailProduct?.quantity < 100">
-                <div class="badge badge-warning text-dark px-2 py-1 font-weight-bold mb-3" x-text="'Only ' + detailProduct.quantity + ' left in stock!'"></div>
-              </template>
               
               <h5 class="font-weight-bold text-dark mb-2">Product Description</h5>
               <p class="text-secondary" style="white-space: pre-wrap; font-size: 0.95rem; max-height: 180px; overflow-y: auto;" x-text="detailProduct?.description || 'No description available for this product.'"></p>
