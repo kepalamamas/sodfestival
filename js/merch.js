@@ -101,6 +101,9 @@ document.addEventListener("alpine:init", () => {
               po_type: this.products[0].po_type || "po_days",
               po_days: this.products[0].po_days || null,
               po_date: this.products[0].po_date || null,
+              is_voucher_required: Boolean(this.products[0].is_voucher_required),
+              is_include_ongkir: Boolean(this.products[0].is_include_ongkir),
+              event_id: this.products[0].event_id || null,
             };
           }
         } else {
@@ -195,6 +198,14 @@ document.addEventListener("alpine:init", () => {
     shippingCashback: 0,       // for RajaOngkir create order
     isCalculatingShipping: false,
 
+    // Voucher fields
+    voucherCode: "",
+    voucherDiscount: 0,
+    isVoucherApplied: false,
+    voucherError: "",
+    voucherSuccessMsg: "",
+    isCheckingVoucher: false,
+
     // Order & QRIS state
     isSubmitting: false,
     orderResponse: null,
@@ -202,6 +213,54 @@ document.addEventListener("alpine:init", () => {
     timerDisplay: "15:00",
     pollInterval: null,
     timerInterval: null,
+
+    async applyVoucher() {
+      if (!this.voucherCode || !this.voucherCode.trim()) {
+        this.voucherError = "Please enter a voucher code.";
+        this.voucherSuccessMsg = "";
+        return;
+      }
+      this.isCheckingVoucher = true;
+      this.voucherError = "";
+      this.voucherSuccessMsg = "";
+
+      try {
+        const backendUrl = this.getBackendUrl();
+        const subtotal = Alpine.store("cart").subtotal;
+        const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(this.voucherCode.trim())}&merchant_code=sodfestival&subtotal=${subtotal}`);
+        const json = await res.json();
+
+        if (json.success && json.data) {
+          this.voucherDiscount = Number(json.data.discount_amount || 0);
+          this.isVoucherApplied = true;
+          this.voucherSuccessMsg = `Voucher applied! Discount: IDR ${this.voucherDiscount.toLocaleString("id-ID")}`;
+          this.voucherError = "";
+        } else {
+          this.voucherError = json.message || "Invalid voucher code.";
+          this.isVoucherApplied = false;
+          this.voucherDiscount = 0;
+          this.voucherSuccessMsg = "";
+        }
+      } catch (err) {
+        console.error("Voucher check error:", err);
+        this.voucherError = "Failed to connect to server for voucher validation.";
+      } finally {
+        this.isCheckingVoucher = false;
+      }
+    },
+
+    removeVoucher() {
+      this.voucherCode = "";
+      this.voucherDiscount = 0;
+      this.isVoucherApplied = false;
+      this.voucherError = "";
+      this.voucherSuccessMsg = "";
+    },
+
+    get totalPayable() {
+      const sub = Alpine.store("cart").subtotal;
+      return Math.max(0, sub - this.voucherDiscount) + this.shippingCost;
+    },
 
     init() {
       this.$watch("cityQuery", (val) => {
@@ -409,8 +468,14 @@ document.addEventListener("alpine:init", () => {
       this.selectedServiceObj = normalized;
       this.courier = (normalized.shipping_name || "jne").toLowerCase();
       this.service = normalized.service_name || "";
-      this.shippingCost = Number(normalized.shipping_cost || 0);
       this.shippingCashback = Number(normalized.shipping_cashback || 0);
+
+      // Free Ongkir check
+      if (this.merchant && this.merchant.is_include_ongkir) {
+        this.shippingCost = 0;
+      } else {
+        this.shippingCost = Number(normalized.shipping_cost || 0);
+      }
     },
 
     selectServiceByValue(val) {
@@ -451,6 +516,11 @@ document.addEventListener("alpine:init", () => {
         return;
       }
 
+      if (this.merchant && this.merchant.is_voucher_required && !this.isVoucherApplied) {
+        alert(`Voucher / Promo Code is required to purchase from merchant '${this.merchant.name}'. Please enter a valid code.`);
+        return;
+      }
+
       // New API: use selectedCity.id as rajaongkir_destination_id
       const payloadRaw = {
         customer_name: this.customer_name,
@@ -464,6 +534,7 @@ document.addEventListener("alpine:init", () => {
         shipping_service: this.service,
         rajaongkir_destination_id: String(this.selectedCity.id),  // NEW: for RajaOngkir create order
         shipping_cashback: this.shippingCashback,                  // NEW: cashback from calculate API
+        voucher_code: this.voucherCode || "",
         items: Alpine.store("cart").items.map((i) => ({
           product_id: i.product_id,
           quantity: i.quantity,
