@@ -129,8 +129,8 @@
                         <button 
                           class="btn btn-sod-orange" 
                           @click="$store.cart.addItem(product)"
-                          :disabled="product.quantity <= 0"
-                          x-text="product.quantity > 0 ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
+                          :disabled="product.quantity !== undefined && product.quantity <= 0"
+                          x-text="(product.quantity === undefined || product.quantity > 0) ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
                         </button>
                       </template>
 
@@ -147,7 +147,7 @@
                             type="button"
                             class="merch-qty-btn"
                             @click="$store.cart.updateQuantity(product.id, getCartQuantity(product.id) + 1)"
-                            :disabled="getCartQuantity(product.id) >= product.quantity">
+                            :disabled="getCartQuantity(product.id) >= (product.max_quantity || 10) || (product.quantity !== undefined && getCartQuantity(product.id) >= product.quantity)">
                             +
                           </button>
                         </div>
@@ -275,12 +275,7 @@
           <!-- Merchant Info Badges -->
           <template x-if="merchant?.is_voucher_required">
             <div class="alert alert-warning py-2 px-3 small font-weight-bold mb-3">
-              ⚠️ Voucher / Promo Code is required to purchase from this merchant.
-            </div>
-          </template>
-          <template x-if="merchant?.is_include_ongkir">
-            <div class="alert alert-info py-2 px-3 small font-weight-bold mb-3">
-              🎉 Free Shipping (Include Ongkir) active! Select your courier expedition below.
+              ⚠️ Voucher / Promo Code is required
             </div>
           </template>
 
@@ -460,8 +455,8 @@
               <button 
                 class="btn btn-sod-orange py-3 font-weight-bold" 
                 @click="$store.cart.addItem(detailProduct); closeProductDetail();"
-                :disabled="detailProduct?.quantity <= 0"
-                x-text="detailProduct?.quantity > 0 ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
+                :disabled="detailProduct?.quantity !== undefined && detailProduct?.quantity <= 0"
+                x-text="(detailProduct?.quantity === undefined || detailProduct?.quantity > 0) ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
               </button>
             </div>
           </div>

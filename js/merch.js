@@ -12,18 +12,25 @@ document.addEventListener("alpine:init", () => {
     addItem(product) {
       const existing = this.items.find((i) => i.product_id === product.id);
       const maxAllowed = Number(product.max_quantity || 10);
+      const availableStock = product.quantity !== undefined && product.quantity !== null ? Number(product.quantity) : 999999;
+
       if (existing) {
-        // Keep stock synced with latest fetched product quantity.
-        existing.stock = Number(product.quantity || 0);
         existing.max_quantity = maxAllowed;
+        existing.stock = availableStock;
         if (existing.quantity >= maxAllowed) {
           alert(`Maximum allowed purchase quantity is ${maxAllowed} per item`);
-        } else if (existing.quantity < product.quantity) {
-          existing.quantity++;
-        } else {
-          alert("Product is out of stock");
+          return;
         }
+        if (existing.quantity >= availableStock) {
+          alert("Product is out of stock");
+          return;
+        }
+        existing.quantity++;
       } else {
+        if (availableStock <= 0) {
+          alert("Product is out of stock");
+          return;
+        }
         this.items.push({
           product_id: product.id,
           title: product.title,
@@ -32,7 +39,7 @@ document.addEventListener("alpine:init", () => {
           merchant_id: product.merchant_id,
           merchant_name: product.merchant_name,
           quantity: 1,
-          stock: product.quantity,
+          stock: availableStock,
           max_quantity: maxAllowed,
           weight: product.weight || 500,
           length: product.length || 0,
@@ -54,13 +61,15 @@ document.addEventListener("alpine:init", () => {
         if (qty <= 0) {
           this.removeItem(productId);
         } else {
-          const maxStock = Number(item.stock || 0);
+          const maxStock = item.stock !== undefined && item.stock !== null ? Number(item.stock) : 999999;
           const maxAllowed = Number(item.max_quantity || 10);
           const limit = Math.min(maxStock, maxAllowed);
           if (qty > limit) {
-            alert(`Maximum allowed quantity is ${limit}`);
+            alert(`Maximum allowed quantity is ${limit} per item`);
+            item.quantity = limit;
+          } else {
+            item.quantity = qty;
           }
-          item.quantity = Math.min(qty, limit);
           this.save();
         }
       }
@@ -112,6 +121,11 @@ document.addEventListener("alpine:init", () => {
               is_include_ongkir: Boolean(this.products[0].is_include_ongkir),
               event_id: this.products[0].event_id || null,
             };
+            // Also sync merchant info to checkoutModal component
+            const checkoutEl = document.getElementById("body");
+            if (checkoutEl && checkoutEl._x_dataStack && checkoutEl._x_dataStack[0]) {
+              checkoutEl._x_dataStack[0].merchant = this.merchant;
+            }
           }
         } else {
           this.error = json.message || "Failed to load products";
@@ -266,9 +280,16 @@ document.addEventListener("alpine:init", () => {
       this.voucherSuccessMsg = "";
     },
 
+    get effectiveShippingCost() {
+      if (this.merchant && this.merchant.is_include_ongkir) {
+        return 0;
+      }
+      return Number(this.shippingCost || 0);
+    },
+
     get totalPayable() {
       const sub = Alpine.store("cart").subtotal;
-      return Math.max(0, sub - this.voucherDiscount) + this.shippingCost;
+      return Math.max(0, sub - this.voucherDiscount) + this.effectiveShippingCost;
     },
 
     init() {
