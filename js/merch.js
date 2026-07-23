@@ -233,7 +233,9 @@ document.addEventListener("alpine:init", () => {
         if (json.success && json.data) {
           this.voucherDiscount = Number(json.data.discount_amount || 0);
           this.isVoucherApplied = true;
-          this.voucherSuccessMsg = `Voucher applied! Discount: IDR ${this.voucherDiscount.toLocaleString("id-ID")}`;
+          this.voucherSuccessMsg = this.voucherDiscount > 0 
+            ? `Voucher applied! Discount: IDR ${this.voucherDiscount.toLocaleString("id-ID")}`
+            : "Code Valid";
           this.voucherError = "";
         } else {
           this.voucherError = json.message || "Invalid voucher code.";

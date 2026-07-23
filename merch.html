@@ -125,6 +125,9 @@
                     </div>
                     <div>
                       <div class="merch-card-price" x-text="formatRupiah(product.price)"></div>
+                      <template x-if="product.quantity > 0 && product.quantity < 100">
+                        <div class="small text-danger font-weight-bold mb-1" x-text="'Only ' + product.quantity + ' left in stock!'"></div>
+                      </template>
                       <template x-if="getCartQuantity(product.id) === 0">
                         <button 
                           class="btn btn-sod-orange" 
@@ -284,24 +287,26 @@
             </div>
           </template>
 
-          <!-- Voucher / Promo Code Input -->
-          <div class="form-group-custom mt-3">
-            <label>Voucher / Promo Code</label>
-            <div class="input-group">
-              <input type="text" class="form-control-custom text-uppercase" placeholder="Enter promo code" x-model="voucherCode" :disabled="isVoucherApplied" style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
-              <div class="input-group-append">
-                <button class="btn btn-primary font-weight-bold px-3" type="button" @click="applyVoucher()" x-show="!isVoucherApplied" :disabled="isCheckingVoucher || !voucherCode">
-                  <span x-show="!isCheckingVoucher">APPLY</span>
-                  <span x-show="isCheckingVoucher">...</span>
-                </button>
-                <button class="btn btn-outline-danger font-weight-bold px-3" type="button" @click="removeVoucher()" x-show="isVoucherApplied">
-                  REMOVE
-                </button>
+          <!-- Voucher / Promo Code Input (only shown if merchant explicitly allows/requires voucher) -->
+          <template x-if="merchant?.is_voucher_required">
+            <div class="form-group-custom mt-3">
+              <label>Voucher / Promo Code</label>
+              <div class="input-group">
+                <input type="text" class="form-control-custom text-uppercase" placeholder="Enter promo code" x-model="voucherCode" :disabled="isVoucherApplied" style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                <div class="input-group-append">
+                  <button class="btn btn-primary font-weight-bold px-3" type="button" @click="applyVoucher()" x-show="!isVoucherApplied" :disabled="isCheckingVoucher || !voucherCode">
+                    <span x-show="!isCheckingVoucher">APPLY</span>
+                    <span x-show="isCheckingVoucher">...</span>
+                  </button>
+                  <button class="btn btn-outline-danger font-weight-bold px-3" type="button" @click="removeVoucher()" x-show="isVoucherApplied">
+                    REMOVE
+                  </button>
+                </div>
               </div>
+              <div class="small text-success mt-1 font-weight-bold" x-show="voucherSuccessMsg" x-text="voucherSuccessMsg"></div>
+              <div class="small text-danger mt-1" x-show="voucherError" x-text="voucherError"></div>
             </div>
-            <div class="small text-success mt-1 font-weight-bold" x-show="voucherSuccessMsg" x-text="voucherSuccessMsg"></div>
-            <div class="small text-danger mt-1" x-show="voucherError" x-text="voucherError"></div>
-          </div>
+          </template>
 
           <!-- Total Calculation -->
           <div class="border-top pt-3 mt-4">
@@ -442,6 +447,9 @@
               </template>
               
               <div class="h3 font-weight-bold text-primary mb-3" x-text="formatRupiah(detailProduct?.price)"></div>
+              <template x-if="detailProduct?.quantity > 0 && detailProduct?.quantity < 100">
+                <div class="badge badge-warning text-dark px-2 py-1 font-weight-bold mb-3" x-text="'Only ' + detailProduct.quantity + ' left in stock!'"></div>
+              </template>
               
               <h5 class="font-weight-bold text-dark mb-2">Product Description</h5>
               <p class="text-secondary" style="white-space: pre-wrap; font-size: 0.95rem; max-height: 180px; overflow-y: auto;" x-text="detailProduct?.description || 'No description available for this product.'"></p>
