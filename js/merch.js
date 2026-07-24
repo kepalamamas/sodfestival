@@ -4,8 +4,18 @@ document.addEventListener("alpine:init", () => {
   const getProductPurchaseLimit = (product) => {
     if (!product || product.is_out_of_stock) return 0;
 
+    const availableStock = Number(product.quantity);
     const maxQty = Number(product.max_quantity);
-    if (Number.isFinite(maxQty) && maxQty > 0) return maxQty;
+
+    const stockLimit = Number.isFinite(availableStock) && availableStock >= 0
+      ? availableStock
+      : Number.MAX_SAFE_INTEGER;
+    const purchaseLimit = Number.isFinite(maxQty) && maxQty >= 0
+      ? maxQty
+      : Number.MAX_SAFE_INTEGER;
+
+    const combinedLimit = Math.min(stockLimit, purchaseLimit);
+    if (combinedLimit !== Number.MAX_SAFE_INTEGER) return combinedLimit;
 
     // Backward compatibility for older payloads that still use `quantity`.
     const legacyQty = Number(product.quantity);
@@ -31,6 +41,7 @@ document.addEventListener("alpine:init", () => {
       }
 
       const existing = this.items.find((i) => i.product_id === product.id);
+
       if (existing) {
         // Keep stock synced with latest fetched product stock limit.
         existing.stock = limit;
@@ -70,12 +81,17 @@ document.addEventListener("alpine:init", () => {
         if (qty <= 0) {
           this.removeItem(productId);
         } else {
-          const maxStock = Number(item.stock || 0);
-          item.quantity = Math.min(qty, maxStock);
-          this.save();
-          if (qty > maxStock) {
-            alert(`Maximum available stock reached (${maxStock})`);
+          const maxStock = item.stock !== undefined && item.stock !== null
+            ? Number(item.stock)
+            : Number.MAX_SAFE_INTEGER;
+          const limit = maxStock;
+          if (qty > limit) {
+            alert(`Maximum allowed quantity is ${limit} per item`);
+            item.quantity = limit;
+          } else {
+            item.quantity = qty;
           }
+          this.save();
         }
       }
     },
@@ -170,7 +186,15 @@ document.addEventListener("alpine:init", () => {
               po_type: this.products[0].po_type || "po_days",
               po_days: this.products[0].po_days || null,
               po_date: this.products[0].po_date || null,
+              is_voucher_required: Boolean(this.products[0].is_voucher_required),
+              is_include_ongkir: Boolean(this.products[0].is_include_ongkir),
+              event_id: this.products[0].event_id || null,
             };
+            // Also sync merchant info to checkoutModal component
+            const checkoutEl = document.getElementById("body");
+            if (checkoutEl && checkoutEl._x_dataStack && checkoutEl._x_dataStack[0]) {
+              checkoutEl._x_dataStack[0].merchant = this.merchant;
+            }
           }
         } else {
           this.error = json.message || "Failed to load products";
@@ -256,7 +280,6 @@ document.addEventListener("alpine:init", () => {
     customer_email: "",
     customer_phone: "",
     shipping_address: "",
-    voucher_code: "",
     
     // City Search (new RajaOngkir API)
     cityQuery: "",
@@ -273,6 +296,14 @@ document.addEventListener("alpine:init", () => {
     shippingCashback: 0,       // for RajaOngkir create order
     isCalculatingShipping: false,
 
+    // Voucher fields
+    voucherCode: "",
+    voucherDiscount: 0,
+    isVoucherApplied: false,
+    voucherError: "",
+    voucherSuccessMsg: "",
+    isCheckingVoucher: false,
+
     // Order & QRIS state
     isSubmitting: false,
     orderResponse: null,
@@ -280,6 +311,63 @@ document.addEventListener("alpine:init", () => {
     timerDisplay: "15:00",
     pollInterval: null,
     timerInterval: null,
+
+    async applyVoucher() {
+      if (!this.voucherCode || !this.voucherCode.trim()) {
+        this.voucherError = "Please enter a voucher code.";
+        this.voucherSuccessMsg = "";
+        return;
+      }
+      this.isCheckingVoucher = true;
+      this.voucherError = "";
+      this.voucherSuccessMsg = "";
+
+      try {
+        const backendUrl = this.getBackendUrl();
+        const subtotal = Alpine.store("cart").subtotal;
+        const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(this.voucherCode.trim())}&merchant_code=sodfestival&subtotal=${subtotal}`);
+        const json = await res.json();
+
+        if (json.success && json.data) {
+          this.voucherDiscount = Number(json.data.discount_amount || 0);
+          this.isVoucherApplied = true;
+          this.voucherSuccessMsg = this.voucherDiscount > 0 
+            ? `Voucher applied! Discount: IDR ${this.voucherDiscount.toLocaleString("id-ID")}`
+            : "Code Valid";
+          this.voucherError = "";
+        } else {
+          this.voucherError = json.message || "Invalid voucher code.";
+          this.isVoucherApplied = false;
+          this.voucherDiscount = 0;
+          this.voucherSuccessMsg = "";
+        }
+      } catch (err) {
+        console.error("Voucher check error:", err);
+        this.voucherError = "Failed to connect to server for voucher validation.";
+      } finally {
+        this.isCheckingVoucher = false;
+      }
+    },
+
+    removeVoucher() {
+      this.voucherCode = "";
+      this.voucherDiscount = 0;
+      this.isVoucherApplied = false;
+      this.voucherError = "";
+      this.voucherSuccessMsg = "";
+    },
+
+    get effectiveShippingCost() {
+      if (this.merchant && this.merchant.is_include_ongkir) {
+        return 0;
+      }
+      return Number(this.shippingCost || 0);
+    },
+
+    get totalPayable() {
+      const sub = Alpine.store("cart").subtotal;
+      return Math.max(0, sub - this.voucherDiscount) + this.effectiveShippingCost;
+    },
 
     init() {
       this.$watch("cityQuery", (val) => {
@@ -487,8 +575,14 @@ document.addEventListener("alpine:init", () => {
       this.selectedServiceObj = normalized;
       this.courier = (normalized.shipping_name || "jne").toLowerCase();
       this.service = normalized.service_name || "";
-      this.shippingCost = Number(normalized.shipping_cost || 0);
       this.shippingCashback = Number(normalized.shipping_cashback || 0);
+
+      // Free Ongkir check
+      if (this.merchant && this.merchant.is_include_ongkir) {
+        this.shippingCost = 0;
+      } else {
+        this.shippingCost = Number(normalized.shipping_cost || 0);
+      }
     },
 
     selectServiceByValue(val) {
@@ -538,7 +632,6 @@ document.addEventListener("alpine:init", () => {
         alert("Please select a shipping service.");
         return;
       }
-
       try {
         const wasAdjusted = await this.syncCartWithLatestProducts();
         if (wasAdjusted) {
@@ -555,13 +648,17 @@ document.addEventListener("alpine:init", () => {
         return;
       }
 
+      if (this.merchant && this.merchant.is_voucher_required && !this.isVoucherApplied) {
+        alert(`Voucher / Promo Code is required to purchase from merchant '${this.merchant.name}'. Please enter a valid code.`);
+        return;
+      }
+
       // New API: use selectedCity.id as rajaongkir_destination_id
       const payloadRaw = {
         customer_name: this.customer_name,
         customer_email: this.customer_email,
         customer_phone: this.customer_phone,
         shipping_address: this.shipping_address,
-        voucher_code: (this.voucher_code || "").trim(),
         shipping_city_id: String(this.selectedCity.id),           // kept for display
         shipping_city_name: this.selectedCity.label || this.selectedCity.city_name || this.cityQuery,
         shipping_province: this.selectedCity.province_name || "",
@@ -570,6 +667,7 @@ document.addEventListener("alpine:init", () => {
         shipping_cost: Number(this.shippingCost || 0),             // ensure backend receives the selected shipping charge
         rajaongkir_destination_id: String(this.selectedCity.id),  // NEW: for RajaOngkir create order
         shipping_cashback: this.shippingCashback,                  // NEW: cashback from calculate API
+        voucher_code: this.voucherCode || "",
         items: Alpine.store("cart").items.map((i) => ({
           product_id: i.product_id,
           quantity: i.quantity,
