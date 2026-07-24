@@ -420,6 +420,21 @@ body {
   box-shadow: 0 2px 8px rgba(90,29,112,0.4);
 }
 
+.limited-stock-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: linear-gradient(135deg, #c53030, #dd6b20);
+  color: #fff;
+  font-family: "bungee", sans-serif;
+  font-size: 0.62rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(197, 48, 48, 0.35);
+}
+
 .merch-card-po-info {
   font-size: 0.75rem;
   color: #5a1d70;
@@ -429,6 +444,7 @@ body {
 }
 
 .merch-card--po { border: 2px solid rgba(90, 29, 112, 0.25); }
+.merch-card--limited { border: 2px solid rgba(197, 48, 48, 0.25); }
 
 /* ====================================================
    SHIPPING SERVICE LIST

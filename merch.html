@@ -105,10 +105,15 @@
 
             <template x-for="product in products" :key="product.id">
               <div class="col-6 col-md-4 col-lg-3 mb-3 mb-md-4">
-                <div class="merch-card" :class="{ 'merch-card--po': product.is_po }">
+                <div class="merch-card" :class="{ 'merch-card--po': product.is_po, 'merch-card--limited': product.has_limited_stock }">
                   <!-- PO Badge -->
                   <template x-if="product.is_po">
                     <div class="po-badge">PRE-ORDER</div>
+                  </template>
+
+                  <!-- Limited Stock Badge -->
+                  <template x-if="product.has_limited_stock">
+                    <div class="limited-stock-badge">LIMITED STOCK</div>
                   </template>
 
                   <div class="merch-card-img-wrap" style="cursor: pointer;" @click="openProductDetail(product)">
@@ -129,8 +134,8 @@
                         <button 
                           class="btn btn-sod-orange" 
                           @click="$store.cart.addItem(product)"
-                          :disabled="product.quantity <= 0"
-                          x-text="product.quantity > 0 ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
+                          :disabled="isProductOutOfStock(product)"
+                          x-text="isProductOutOfStock(product) ? 'OUT OF STOCK' : '🛒 ADD TO CART'">
                         </button>
                       </template>
 
@@ -147,7 +152,7 @@
                             type="button"
                             class="merch-qty-btn"
                             @click="$store.cart.updateQuantity(product.id, getCartQuantity(product.id) + 1)"
-                            :disabled="getCartQuantity(product.id) >= product.quantity">
+                            :disabled="getCartQuantity(product.id) >= getProductPurchaseLimit(product)">
                             +
                           </button>
                         </div>
@@ -288,6 +293,11 @@
             </div>
           </div>
 
+          <div class="form-group-custom mt-3">
+            <label>Voucher</label>
+            <input type="text" class="form-control-custom" placeholder="Enter voucher code" x-model="voucher_code">
+          </div>
+
           <button class="btn btn-sod-orange mt-4 py-3 font-weight-bold" @click="submitOrder()" :disabled="isSubmitting || isCalculatingShipping || !selectedCity || !selectedCity.id || !service">
             <span x-show="!isSubmitting">🔒 PAY WITH QRIS &rarr;</span>
             <span x-show="isSubmitting">Processing Order...</span>
@@ -416,8 +426,8 @@
               <button 
                 class="btn btn-sod-orange py-3 font-weight-bold" 
                 @click="$store.cart.addItem(detailProduct); closeProductDetail();"
-                :disabled="detailProduct?.quantity <= 0"
-                x-text="detailProduct?.quantity > 0 ? '🛒 ADD TO CART' : 'OUT OF STOCK'">
+                :disabled="isProductOutOfStock(detailProduct)"
+                x-text="isProductOutOfStock(detailProduct) ? 'OUT OF STOCK' : '🛒 ADD TO CART'">
               </button>
             </div>
           </div>

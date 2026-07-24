@@ -1,6 +1,20 @@
 /* SOD Festival Merchandise Alpine.js Application Script */
 
 document.addEventListener("alpine:init", () => {
+  const getProductPurchaseLimit = (product) => {
+    if (!product || product.is_out_of_stock) return 0;
+
+    const maxQty = Number(product.max_quantity);
+    if (Number.isFinite(maxQty) && maxQty > 0) return maxQty;
+
+    // Backward compatibility for older payloads that still use `quantity`.
+    const legacyQty = Number(product.quantity);
+    if (Number.isFinite(legacyQty) && legacyQty > 0) return legacyQty;
+
+    // No explicit stock limit in payload.
+    return Number.MAX_SAFE_INTEGER;
+  };
+
   // 1. Global Cart Store (persisted in localStorage)
   Alpine.store("cart", {
     items: JSON.parse(localStorage.getItem("sod_merch_cart") || "[]"),
@@ -10,14 +24,20 @@ document.addEventListener("alpine:init", () => {
     },
 
     addItem(product) {
+      const limit = getProductPurchaseLimit(product);
+      if (limit <= 0) {
+        alert("This product is currently out of stock.");
+        return;
+      }
+
       const existing = this.items.find((i) => i.product_id === product.id);
       if (existing) {
-        // Keep stock synced with latest fetched product quantity.
-        existing.stock = Number(product.quantity || 0);
-        if (existing.quantity < product.quantity) {
+        // Keep stock synced with latest fetched product stock limit.
+        existing.stock = limit;
+        if (existing.quantity < limit) {
           existing.quantity++;
         } else {
-          alert(`Maximum available stock reached (${product.quantity})`);
+          alert(`Maximum available stock reached (${limit})`);
         }
       } else {
         this.items.push({
@@ -28,11 +48,12 @@ document.addEventListener("alpine:init", () => {
           merchant_id: product.merchant_id,
           merchant_name: product.merchant_name,
           quantity: 1,
-          stock: product.quantity,
+          stock: limit,
           weight: product.weight || 500,
           length: product.length || 0,
           width: product.width || 0,
           height: product.height || 0,
+          merchant_rajaongkir_dest_id: product.merchant_rajaongkir_dest_id || null,
         });
       }
       this.save();
@@ -57,6 +78,53 @@ document.addEventListener("alpine:init", () => {
           }
         }
       }
+    },
+
+    syncStockFromProducts(products) {
+      if (!Array.isArray(products) || products.length === 0 || this.items.length === 0) {
+        return false;
+      }
+
+      const productMap = new Map(
+        products.map((p) => [Number(p.id), p])
+      );
+
+      let changed = false;
+      this.items = this.items
+        .map((item) => {
+          const product = productMap.get(Number(item.product_id));
+          if (!product) return item;
+
+          const limit = getProductPurchaseLimit(product);
+          const nextItem = { ...item };
+
+          if (nextItem.stock !== limit) {
+            nextItem.stock = limit;
+            changed = true;
+          }
+
+          if (nextItem.merchant_rajaongkir_dest_id !== (product.merchant_rajaongkir_dest_id || null)) {
+            nextItem.merchant_rajaongkir_dest_id = product.merchant_rajaongkir_dest_id || null;
+            changed = true;
+          }
+
+          if (Number(nextItem.quantity) > limit) {
+            nextItem.quantity = limit;
+            changed = true;
+          }
+
+          return nextItem;
+        })
+        .filter((item) => {
+          if (Number(item.quantity) <= 0) {
+            changed = true;
+            return false;
+          }
+          return true;
+        });
+
+      if (changed) this.save();
+      return changed;
     },
 
     clear() {
@@ -93,6 +161,7 @@ document.addEventListener("alpine:init", () => {
         const json = await res.json();
         if (json.success) {
           this.products = json.data;
+          Alpine.store("cart").syncStockFromProducts(this.products);
           // Extract merchant PO info from first product (all share same merchant for sodfestival)
           if (this.products.length > 0) {
             this.merchant = {
@@ -163,6 +232,14 @@ document.addEventListener("alpine:init", () => {
       const item = Alpine.store("cart").items.find((i) => i.product_id === productId);
       return item ? Number(item.quantity || 0) : 0;
     },
+
+    getProductPurchaseLimit(product) {
+      return getProductPurchaseLimit(product);
+    },
+
+    isProductOutOfStock(product) {
+      return this.getProductPurchaseLimit(product) <= 0;
+    },
   }));
 
   // 3. Checkout & Payment Modal Component
@@ -179,6 +256,7 @@ document.addEventListener("alpine:init", () => {
     customer_email: "",
     customer_phone: "",
     shipping_address: "",
+    voucher_code: "",
     
     // City Search (new RajaOngkir API)
     cityQuery: "",
@@ -437,6 +515,16 @@ document.addEventListener("alpine:init", () => {
       return "https://sodtix.com";
     },
 
+    async syncCartWithLatestProducts() {
+      const backendUrl = this.getBackendUrl();
+      const res = await fetch(`${backendUrl}/api/v1/public/merch/products?merchant_code=sodfestival`);
+      const json = await res.json();
+      if (!json.success || !Array.isArray(json.data)) {
+        throw new Error(json.message || "Failed to validate cart stock");
+      }
+      return Alpine.store("cart").syncStockFromProducts(json.data);
+    },
+
     async submitOrder() {
       if (!this.customer_name || !this.customer_email || !this.customer_phone || !this.shipping_address) {
         alert("Please complete all customer and address fields.");
@@ -451,17 +539,35 @@ document.addEventListener("alpine:init", () => {
         return;
       }
 
+      try {
+        const wasAdjusted = await this.syncCartWithLatestProducts();
+        if (wasAdjusted) {
+          alert("Some cart quantities were adjusted to the latest max quantity limits.");
+        }
+      } catch (err) {
+        console.error("Cart stock validation error:", err);
+        alert("Unable to validate product stock. Please try again.");
+        return;
+      }
+
+      if (Alpine.store("cart").items.length === 0) {
+        alert("Your cart is empty after stock validation.");
+        return;
+      }
+
       // New API: use selectedCity.id as rajaongkir_destination_id
       const payloadRaw = {
         customer_name: this.customer_name,
         customer_email: this.customer_email,
         customer_phone: this.customer_phone,
         shipping_address: this.shipping_address,
+        voucher_code: (this.voucher_code || "").trim(),
         shipping_city_id: String(this.selectedCity.id),           // kept for display
         shipping_city_name: this.selectedCity.label || this.selectedCity.city_name || this.cityQuery,
         shipping_province: this.selectedCity.province_name || "",
         shipping_courier: this.courier,
         shipping_service: this.service,
+        shipping_cost: Number(this.shippingCost || 0),             // ensure backend receives the selected shipping charge
         rajaongkir_destination_id: String(this.selectedCity.id),  // NEW: for RajaOngkir create order
         shipping_cashback: this.shippingCashback,                  // NEW: cashback from calculate API
         items: Alpine.store("cart").items.map((i) => ({
