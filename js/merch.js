@@ -503,16 +503,43 @@ document.addEventListener("alpine:init", () => {
       this.customCodeInput = "";
     },
 
-    addDetailProductToCart() {
+    isValidatingCode: false,
+
+    async addDetailProductToCart() {
       if (!this.detailProduct) return;
       if (this.detailProduct.has_variants && !this.selectedVariant) {
         alert("Please select a variant / size.");
         return;
       }
-      if (this.detailProduct.is_code_required && (!this.customCodeInput || !this.customCodeInput.trim())) {
-        const label = this.detailProduct.code_label || "Ticket ID";
-        alert(`Please enter your ${label}.`);
-        return;
+      if (this.detailProduct.is_code_required) {
+        if (!this.customCodeInput || !this.customCodeInput.trim()) {
+          const label = this.detailProduct.code_label || "Ticket ID";
+          alert(`Please enter your ${label}.`);
+          return;
+        }
+
+        this.isValidatingCode = true;
+        try {
+          const backendUrl = this.getBackendUrl();
+          const codeVal = this.customCodeInput.trim();
+          const merchantId = this.detailProduct.merchant_id;
+          
+          const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(codeVal)}&merchant_id=${merchantId}`);
+          const json = await res.json();
+          
+          if (!json.success) {
+            const label = this.detailProduct.code_label || "Ticket ID";
+            alert(`Invalid ${label}: ${json.message || 'The code entered is not valid.'}`);
+            this.isValidatingCode = false;
+            return;
+          }
+        } catch (err) {
+          console.error("Code validation error:", err);
+          alert("Failed to validate code. Please try again.");
+          this.isValidatingCode = false;
+          return;
+        }
+        this.isValidatingCode = false;
       }
 
       Alpine.store("cart").addItem(this.detailProduct, this.selectedVariant, this.customCodeInput);

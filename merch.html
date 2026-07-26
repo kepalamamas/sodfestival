@@ -511,8 +511,8 @@
               <button 
                 class="btn btn-sod-orange py-3 font-weight-bold" 
                 @click="addDetailProductToCart()"
-                :disabled="isProductOutOfStock(detailProduct) || (detailProduct?.has_variants && !selectedVariant)"
-                x-text="isProductOutOfStock(detailProduct) ? 'OUT OF STOCK' : '🛒 ADD TO CART'">
+                :disabled="isProductOutOfStock(detailProduct) || (detailProduct?.has_variants && !selectedVariant) || isValidatingCode"
+                x-text="isProductOutOfStock(detailProduct) ? 'OUT OF STOCK' : (isValidatingCode ? 'VALIDATING...' : '🛒 ADD TO CART')">
               </button>
             </div>
           </div>
