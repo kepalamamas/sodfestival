@@ -1,8 +1,13 @@
 /* SOD Festival Merchandise Alpine.js Application Script */
 
 document.addEventListener("alpine:init", () => {
-  const getProductPurchaseLimit = (product) => {
+  const getProductPurchaseLimit = (product, variant = null) => {
     if (!product || product.is_out_of_stock) return 0;
+
+    if (variant) {
+      const vQty = Number(variant.quantity);
+      return Number.isFinite(vQty) && vQty >= 0 ? vQty : 0;
+    }
 
     const availableStock = Number(product.quantity);
     const maxQty = Number(product.max_quantity);
@@ -33,28 +38,51 @@ document.addEventListener("alpine:init", () => {
       localStorage.setItem("sod_merch_cart", JSON.stringify(this.items));
     },
 
-    addItem(product) {
-      const limit = getProductPurchaseLimit(product);
-      if (limit <= 0) {
-        alert("This product is currently out of stock.");
+    addItem(product, variant = null, customCode = "") {
+      if (!product) return;
+
+      if (product.has_variants && (!product.variants || product.variants.length > 0) && !variant) {
+        alert("Please select a size / variant.");
         return;
       }
 
-      const existing = this.items.find((i) => i.product_id === product.id);
+      if (product.is_code_required && (!customCode || !customCode.trim())) {
+        const label = product.code_label || "Ticket ID";
+        alert(`Please enter your ${label} for '${product.title}'.`);
+        return;
+      }
+
+      const limit = getProductPurchaseLimit(product, variant);
+      if (limit <= 0) {
+        alert("This item / variant is currently out of stock.");
+        return;
+      }
+
+      const variantId = variant ? variant.id : null;
+      const variantName = variant ? variant.name : null;
+      const price = variant && variant.price !== null && variant.price !== undefined && !Number.isNaN(Number(variant.price))
+        ? Number(variant.price)
+        : Number(product.price);
+
+      const existing = this.items.find(
+        (i) => i.product_id === product.id && (i.variant_id || null) === (variantId || null)
+      );
 
       if (existing) {
-        // Keep stock synced with latest fetched product stock limit.
         existing.stock = limit;
         if (existing.quantity < limit) {
           existing.quantity++;
+          if (customCode && customCode.trim()) existing.custom_code = customCode.trim();
         } else {
           alert(`Maximum available stock reached (${limit})`);
         }
       } else {
         this.items.push({
           product_id: product.id,
+          variant_id: variantId,
+          variant_name: variantName,
           title: product.title,
-          price: Number(product.price),
+          price: price,
           photo: product.photo,
           merchant_id: product.merchant_id,
           merchant_name: product.merchant_name,
@@ -64,22 +92,29 @@ document.addEventListener("alpine:init", () => {
           length: product.length || 0,
           width: product.width || 0,
           height: product.height || 0,
+          is_code_required: Boolean(product.is_code_required),
+          code_label: product.code_label || "Ticket ID",
+          custom_code: customCode ? customCode.trim() : "",
           merchant_rajaongkir_dest_id: product.merchant_rajaongkir_dest_id || null,
         });
       }
       this.save();
     },
 
-    removeItem(productId) {
-      this.items = this.items.filter((i) => i.product_id !== productId);
+    removeItem(productId, variantId = null) {
+      this.items = this.items.filter(
+        (i) => !(i.product_id === productId && (i.variant_id || null) === (variantId || null))
+      );
       this.save();
     },
 
-    updateQuantity(productId, qty) {
-      const item = this.items.find((i) => i.product_id === productId);
+    updateQuantity(productId, qty, variantId = null) {
+      const item = this.items.find(
+        (i) => i.product_id === productId && (i.variant_id || null) === (variantId || null)
+      );
       if (item) {
         if (qty <= 0) {
-          this.removeItem(productId);
+          this.removeItem(productId, variantId);
         } else {
           const maxStock = item.stock !== undefined && item.stock !== null
             ? Number(item.stock)
@@ -111,7 +146,12 @@ document.addEventListener("alpine:init", () => {
           const product = productMap.get(Number(item.product_id));
           if (!product) return item;
 
-          const limit = getProductPurchaseLimit(product);
+          let variantObj = null;
+          if (item.variant_id && Array.isArray(product.variants)) {
+            variantObj = product.variants.find((v) => Number(v.id) === Number(item.variant_id));
+          }
+
+          const limit = getProductPurchaseLimit(product, variantObj);
           const nextItem = { ...item };
 
           if (nextItem.stock !== limit) {
@@ -253,8 +293,8 @@ document.addEventListener("alpine:init", () => {
     },
 
     getCartQuantity(productId) {
-      const item = Alpine.store("cart").items.find((i) => i.product_id === productId);
-      return item ? Number(item.quantity || 0) : 0;
+      const items = Alpine.store("cart").items.filter((i) => i.product_id === productId);
+      return items.reduce((sum, i) => sum + Number(i.quantity || 0), 0);
     },
 
     getProductPurchaseLimit(product) {
@@ -274,6 +314,11 @@ document.addEventListener("alpine:init", () => {
     step: "checkout", // 'checkout', 'qris', 'success'
     showDetailModal: false,
     detailProduct: null,
+    selectedVariant: null,
+    customCodeInput: "",
+
+    // Event Pickup state
+    is_event_pickup: false,
 
     // Form Fields
     customer_name: "",
@@ -358,6 +403,9 @@ document.addEventListener("alpine:init", () => {
     },
 
     get effectiveShippingCost() {
+      if (this.is_event_pickup) {
+        return 0;
+      }
       if (this.merchant && this.merchant.is_include_ongkir) {
         return 0;
       }
@@ -379,7 +427,7 @@ document.addEventListener("alpine:init", () => {
       });
       
       this.$watch("$store.cart.items", (val) => {
-        if (this.showModal && this.selectedCity) {
+        if (this.showModal && this.selectedCity && !this.is_event_pickup) {
           if (val.length === 0) {
             if (this.step === "checkout") {
               this.closeCheckout();
@@ -425,12 +473,34 @@ document.addEventListener("alpine:init", () => {
 
     openProductDetail(product) {
       this.detailProduct = product;
+      this.selectedVariant = product.has_variants && Array.isArray(product.variants) && product.variants.length > 0
+        ? product.variants[0]
+        : null;
+      this.customCodeInput = "";
       this.showDetailModal = true;
     },
 
     closeProductDetail() {
       this.showDetailModal = false;
       this.detailProduct = null;
+      this.selectedVariant = null;
+      this.customCodeInput = "";
+    },
+
+    addDetailProductToCart() {
+      if (!this.detailProduct) return;
+      if (this.detailProduct.has_variants && !this.selectedVariant) {
+        alert("Please select a variant / size.");
+        return;
+      }
+      if (this.detailProduct.is_code_required && (!this.customCodeInput || !this.customCodeInput.trim())) {
+        const label = this.detailProduct.code_label || "Ticket ID";
+        alert(`Please enter your ${label}.`);
+        return;
+      }
+
+      Alpine.store("cart").addItem(this.detailProduct, this.selectedVariant, this.customCodeInput);
+      this.closeProductDetail();
     },
 
     getCarouselImages() {
@@ -458,8 +528,6 @@ document.addEventListener("alpine:init", () => {
         this.isSearchingCity = true;
         try {
           const backendUrl = this.getBackendUrl();
-          // New API: GET /shipping/search-city?q=keyword
-          // Response: { data: [ { id, label, province_name, city_name, district_name, zip_code } ] }
           const res = await fetch(`${backendUrl}/api/v1/public/merch/shipping/search-city?q=${encodeURIComponent(query)}`);
           const json = await res.json();
           if (json.success) {
@@ -474,7 +542,6 @@ document.addEventListener("alpine:init", () => {
     },
 
     selectCity(item) {
-      // New API returns: { id, label, province_name, city_name, district_name, zip_code }
       this.selectedCity = item;
       this.cityQuery = item.label || `${item.city_name || item.district_name || ""}, ${item.province_name || ""}`;
       this.citySearchResults = [];
@@ -483,10 +550,18 @@ document.addEventListener("alpine:init", () => {
       this.shippingCashback = 0;
       this.service = "";
       this.selectedServiceObj = null;
-      this.calculateShippingCost();
+      if (!this.is_event_pickup) {
+        this.calculateShippingCost();
+      }
     },
 
     async calculateShippingCost() {
+      if (this.is_event_pickup) {
+        this.shippingCost = 0;
+        this.shippingCashback = 0;
+        return;
+      }
+
       if (!this.selectedCity || !this.selectedCity.id) return;
 
       const cartItems = Alpine.store("cart").items;
@@ -495,12 +570,10 @@ document.addEventListener("alpine:init", () => {
       const totalWeight = cartItems.reduce((sum, i) => sum + (i.weight || 500) * i.quantity, 0);
       const itemValue = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-      // Stacked dimensions logic: max length, max width, sum of height * quantity
       const maxLength = Math.max(...cartItems.map(i => i.length || 0), 0);
       const maxWidth = Math.max(...cartItems.map(i => i.width || 0), 0);
       const totalHeight = cartItems.reduce((sum, i) => sum + (i.height || 0) * i.quantity, 0);
 
-      // We need the merchant's rajaongkir_destination_id for the shipper side
       const shipperDestId = cartItems[0]?.merchant_rajaongkir_dest_id || null;
 
       this.isCalculatingShipping = true;
@@ -519,7 +592,6 @@ document.addEventListener("alpine:init", () => {
           cod: false,
         });
 
-        // Only include shipper if known
         if (shipperDestId) {
           params.append("shipper_destination_id", String(shipperDestId));
         }
@@ -532,8 +604,6 @@ document.addEventListener("alpine:init", () => {
         const json = await res.json();
         
         if (json.success && json.data) {
-          // New response: { data: { calculate_reguler: [...], calculate_cargo: [...] } }
-          // Each item: { shipping, shipping_type, shipping_code, price, etd, shipping_cashback, price_cashback }
           const reguler = json.data.calculate_reguler || [];
           const cargo = json.data.calculate_cargo || [];
           const allServices = [...reguler, ...cargo].map((srv) => this.normalizeService(srv));
@@ -571,14 +641,12 @@ document.addEventListener("alpine:init", () => {
       const normalized = this.normalizeService(srvObj);
       if (!normalized) return;
 
-      // Support both old and new shipping API field names.
       this.selectedServiceObj = normalized;
       this.courier = (normalized.shipping_name || "jne").toLowerCase();
       this.service = normalized.service_name || "";
       this.shippingCashback = Number(normalized.shipping_cashback || 0);
 
-      // Free Ongkir check
-      if (this.merchant && this.merchant.is_include_ongkir) {
+      if (this.is_event_pickup || (this.merchant && this.merchant.is_include_ongkir)) {
         this.shippingCost = 0;
       } else {
         this.shippingCost = Number(normalized.shipping_cost || 0);
@@ -620,18 +688,35 @@ document.addEventListener("alpine:init", () => {
     },
 
     async submitOrder() {
-      if (!this.customer_name || !this.customer_email || !this.customer_phone || !this.shipping_address) {
-        alert("Please complete all customer and address fields.");
+      if (!this.customer_name || !this.customer_email || !this.customer_phone) {
+        alert("Please complete customer information fields.");
         return;
       }
-      if (!this.selectedCity || !this.selectedCity.id) {
-        alert("Please select a valid destination city.");
-        return;
+
+      if (!this.is_event_pickup) {
+        if (!this.shipping_address) {
+          alert("Please enter a street address for delivery.");
+          return;
+        }
+        if (!this.selectedCity || !this.selectedCity.id) {
+          alert("Please select a valid destination city.");
+          return;
+        }
+        if (!this.service) {
+          alert("Please select a shipping service.");
+          return;
+        }
       }
-      if (!this.service) {
-        alert("Please select a shipping service.");
-        return;
+
+      // Check required codes for cart items
+      for (const item of Alpine.store("cart").items) {
+        if (item.is_code_required && (!item.custom_code || !item.custom_code.trim())) {
+          const label = item.code_label || "Ticket ID";
+          alert(`Please enter ${label} for product '${item.title}' in your cart.`);
+          return;
+        }
       }
+
       try {
         const wasAdjusted = await this.syncCartWithLatestProducts();
         if (wasAdjusted) {
@@ -648,29 +733,26 @@ document.addEventListener("alpine:init", () => {
         return;
       }
 
-      if (this.merchant && this.merchant.is_voucher_required && !this.isVoucherApplied) {
-        alert(`Voucher / Promo Code is required to purchase from merchant '${this.merchant.name}'. Please enter a valid code.`);
-        return;
-      }
-
-      // New API: use selectedCity.id as rajaongkir_destination_id
       const payloadRaw = {
         customer_name: this.customer_name,
         customer_email: this.customer_email,
         customer_phone: this.customer_phone,
-        shipping_address: this.shipping_address,
-        shipping_city_id: String(this.selectedCity.id),           // kept for display
-        shipping_city_name: this.selectedCity.label || this.selectedCity.city_name || this.cityQuery,
-        shipping_province: this.selectedCity.province_name || "",
-        shipping_courier: this.courier,
-        shipping_service: this.service,
-        shipping_cost: Number(this.shippingCost || 0),             // ensure backend receives the selected shipping charge
-        rajaongkir_destination_id: String(this.selectedCity.id),  // NEW: for RajaOngkir create order
-        shipping_cashback: this.shippingCashback,                  // NEW: cashback from calculate API
+        fulfillment_type: this.is_event_pickup ? "pickup" : "delivery",
+        shipping_address: this.is_event_pickup ? "Pickup at Event" : this.shipping_address,
+        shipping_city_id: this.is_event_pickup ? null : (this.selectedCity ? String(this.selectedCity.id) : null),
+        shipping_city_name: this.is_event_pickup ? "Pickup at Event" : (this.selectedCity?.label || this.selectedCity?.city_name || this.cityQuery),
+        shipping_province: this.is_event_pickup ? "" : (this.selectedCity?.province_name || ""),
+        shipping_courier: this.is_event_pickup ? "pickup" : this.courier,
+        shipping_service: this.is_event_pickup ? "Event Pickup" : this.service,
+        shipping_cost: this.is_event_pickup ? 0 : Number(this.shippingCost || 0),
+        rajaongkir_destination_id: this.is_event_pickup ? null : (this.selectedCity ? String(this.selectedCity.id) : null),
+        shipping_cashback: this.is_event_pickup ? 0 : this.shippingCashback,
         voucher_code: this.voucherCode || "",
         items: Alpine.store("cart").items.map((i) => ({
           product_id: i.product_id,
+          variant_id: i.variant_id || null,
           quantity: i.quantity,
+          custom_code: i.custom_code || "",
         })),
       };
 
@@ -680,7 +762,6 @@ document.addEventListener("alpine:init", () => {
         const backendUrl = this.getBackendUrl();
         let bodyPayload = payloadRaw;
 
-        // Optional CryptoJS AES payload encryption if library loaded
         const encryptKey = (typeof process !== 'undefined' && process?.env?.MERCH_ENCRYPT_KEY) || null;
         if (window.CryptoJS && encryptKey) {
           const encryptedStr = CryptoJS.AES.encrypt(

@@ -133,9 +133,9 @@
                       <template x-if="getCartQuantity(product.id) === 0">
                         <button 
                           class="btn btn-sod-orange" 
-                          @click="$store.cart.addItem(product)"
+                          @click="(product.has_variants || product.is_code_required) ? openProductDetail(product) : $store.cart.addItem(product)"
                           :disabled="isProductOutOfStock(product)"
-                          x-text="isProductOutOfStock(product) ? 'OUT OF STOCK' : '🛒 ADD TO CART'">
+                          x-text="isProductOutOfStock(product) ? 'OUT OF STOCK' : ((product.has_variants || product.is_code_required) ? '🛒 SELECT' : '🛒 ADD TO CART')">
                         </button>
                       </template>
 
@@ -197,18 +197,31 @@
           <div class="merch-cart-card card mb-4 bg-light border-0">
             <div class="card-body p-3">
               <h5 class="font-weight-bold text-dark mb-3">📦 Order Items</h5>
-              <template x-for="item in $store.cart.items" :key="item.product_id">
-                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                  <div>
-                    <strong x-text="item.title" class="text-dark"></strong>
-                    <div class="small text-muted" x-text="'IDR ' + Number(item.price).toLocaleString('id-ID') + ' x ' + item.quantity"></div>
+              <template x-for="item in $store.cart.items" :key="item.product_id + '_' + (item.variant_id || '')">
+                <div class="mb-2 pb-2 border-bottom">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong x-text="item.title" class="text-dark"></strong>
+                      <template x-if="item.variant_name">
+                        <span class="badge badge-secondary ml-1" x-text="item.variant_name"></span>
+                      </template>
+                      <div class="small text-muted" x-text="'IDR ' + Number(item.price).toLocaleString('id-ID') + ' x ' + item.quantity"></div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      <button class="btn btn-sm btn-outline-secondary px-2 py-0" @click="$store.cart.updateQuantity(item.product_id, item.quantity - 1, item.variant_id)">-</button>
+                      <span class="mx-2 font-weight-bold" x-text="item.quantity"></span>
+                      <button class="btn btn-sm btn-outline-secondary px-2 py-0" @click="$store.cart.updateQuantity(item.product_id, item.quantity + 1, item.variant_id)">+</button>
+                      <button class="btn btn-sm btn-link text-danger ml-2 p-0" @click="$store.cart.removeItem(item.product_id, item.variant_id)">&times;</button>
+                    </div>
                   </div>
-                  <div class="d-flex align-items-center">
-                    <button class="btn btn-sm btn-outline-secondary px-2 py-0" @click="$store.cart.updateQuantity(item.product_id, item.quantity - 1)">-</button>
-                    <span class="mx-2 font-weight-bold" x-text="item.quantity"></span>
-                    <button class="btn btn-sm btn-outline-secondary px-2 py-0" @click="$store.cart.updateQuantity(item.product_id, item.quantity + 1)">+</button>
-                    <button class="btn btn-sm btn-link text-danger ml-2 p-0" @click="$store.cart.removeItem(item.product_id)">&times;</button>
-                  </div>
+
+                  <!-- Per-product code input requirement in checkout -->
+                  <template x-if="item.is_code_required">
+                    <div class="mt-1">
+                      <small class="font-weight-bold text-danger d-block" x-text="'* Required ' + (item.code_label || 'Ticket ID') + ':'"></small>
+                      <input type="text" class="form-control-custom form-control-sm mt-1" :placeholder="'Enter ' + (item.code_label || 'Ticket ID')" x-model="item.custom_code" @input="$store.cart.save()">
+                    </div>
+                  </template>
                 </div>
               </template>
             </div>
@@ -231,51 +244,64 @@
             </div>
           </div>
 
-          <!-- Shipping Address -->
-          <h5 class="font-weight-bold text-dark mt-3 mb-3">📍 Shipping Details</h5>
-          <div class="form-group-custom">
-            <label>Street Address *</label>
-            <textarea class="form-control-custom" rows="2" placeholder="Full street address, building, house number" x-model="shipping_address" required></textarea>
-          </div>
+          <!-- Shipping Details & Pickup at Event option -->
+          <h5 class="font-weight-bold text-dark mt-3 mb-3">📍 Fulfillment Details</h5>
 
-          <!-- Destination City Autocomplete -->
-          <div class="form-group-custom style-relative" style="position: relative;">
-            <label>City / District Destination *</label>
-            <input type="text" class="form-control-custom" placeholder="Type city or kecamatan (e.g. Surabaya)" x-model="cityQuery">
-            <div class="small text-muted mt-1" x-show="isSearchingCity">Searching locations...</div>
-            
-            <!-- Autocomplete dropdown -->
-            <div class="autocomplete-suggestions" x-show="citySearchResults.length > 0">
-              <template x-for="res in citySearchResults" :key="res.id || res.city_id || res.destination_id">
-                <div class="autocomplete-item" @click="selectCity(res)" x-text="res.label || res.destination_name || (res.city_name + ', ' + res.province_name)"></div>
-              </template>
+          <div class="form-group-custom mb-3">
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" class="custom-control-input" id="isEventPickup" x-model="is_event_pickup">
+              <label class="custom-control-label font-weight-bold text-dark" for="isEventPickup">🎪 Pickup at Event (No Shipping Fee)</label>
             </div>
           </div>
 
-          <!-- Courier & Service Selection (new RajaOngkir API: returns all courier options) -->
-          <div x-show="selectedCity">
-            <div class="form-group-custom">
-              <label>Shipping Service *</label>
-              <div class="small text-muted mb-2" x-show="isCalculatingShipping">⏳ Calculating rates...</div>
-              <template x-if="!isCalculatingShipping && availableServices.length === 0 && selectedCity">
-                <p class="small text-warning">No shipping rates available. Please try a different destination.</p>
-              </template>
-              <div class="shipping-service-list">
-                <template x-for="(srv, idx) in availableServices" :key="idx">
-                  <label class="shipping-service-option" :class="{ 'active': getServiceSelectValue(srv) === getServiceSelectValue(selectedServiceObj) }">
-                    <input type="radio" :value="getServiceSelectValue(srv)" @change="selectServiceByValue(getServiceSelectValue(srv))" style="display:none;">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <div>
-                        <strong x-text="(srv.shipping_name || '').toUpperCase() + ' ' + (srv.service_name || '')"></strong>
-                        <span class="text-muted small ml-2" x-text="srv.etd ? '(' + srv.etd + ')' : ''"></span>
-                      </div>
-                      <div class="font-weight-bold" x-text="'IDR ' + Number(srv.shipping_cost || 0).toLocaleString('id-ID')"></div>
-                    </div>
-                  </label>
-                </template>
+          <!-- Courier Delivery Address (Hidden when Pickup at Event is checked) -->
+          <template x-if="!is_event_pickup">
+            <div>
+              <div class="form-group-custom">
+                <label>Street Address *</label>
+                <textarea class="form-control-custom" rows="2" placeholder="Full street address, building, house number" x-model="shipping_address" required></textarea>
+              </div>
+
+              <!-- Destination City Autocomplete -->
+              <div class="form-group-custom style-relative" style="position: relative;">
+                <label>City / District Destination *</label>
+                <input type="text" class="form-control-custom" placeholder="Type city or kecamatan (e.g. Surabaya)" x-model="cityQuery">
+                <div class="small text-muted mt-1" x-show="isSearchingCity">Searching locations...</div>
+                
+                <!-- Autocomplete dropdown -->
+                <div class="autocomplete-suggestions" x-show="citySearchResults.length > 0">
+                  <template x-for="res in citySearchResults" :key="res.id || res.city_id || res.destination_id">
+                    <div class="autocomplete-item" @click="selectCity(res)" x-text="res.label || res.destination_name || (res.city_name + ', ' + res.province_name)"></div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Courier & Service Selection -->
+              <div x-show="selectedCity">
+                <div class="form-group-custom">
+                  <label>Shipping Service *</label>
+                  <div class="small text-muted mb-2" x-show="isCalculatingShipping">⏳ Calculating rates...</div>
+                  <template x-if="!isCalculatingShipping && availableServices.length === 0 && selectedCity">
+                    <p class="small text-warning">No shipping rates available. Please try a different destination.</p>
+                  </template>
+                  <div class="shipping-service-list">
+                    <template x-for="(srv, idx) in availableServices" :key="idx">
+                      <label class="shipping-service-option" :class="{ 'active': getServiceSelectValue(srv) === getServiceSelectValue(selectedServiceObj) }">
+                        <input type="radio" :value="getServiceSelectValue(srv)" @change="selectServiceByValue(getServiceSelectValue(srv))" style="display:none;">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div>
+                            <strong x-text="(srv.shipping_name || '').toUpperCase() + ' ' + (srv.service_name || '')"></strong>
+                            <span class="text-muted small ml-2" x-text="srv.etd ? '(' + srv.etd + ')' : ''"></span>
+                          </div>
+                          <div class="font-weight-bold" x-text="'IDR ' + Number(srv.shipping_cost || 0).toLocaleString('id-ID')"></div>
+                        </div>
+                      </label>
+                    </template>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </template>
 
           <!-- Merchant Info Badges -->
           <template x-if="merchant?.is_voucher_required">
@@ -284,7 +310,7 @@
             </div>
           </template>
 
-          <!-- Voucher / Promo Code Input (only shown if merchant explicitly allows/requires voucher) -->
+          <!-- Voucher / Promo Code Input -->
           <template x-if="merchant?.is_voucher_required">
             <div class="form-group-custom mt-3">
               <label>Voucher / Promo Code</label>
@@ -319,10 +345,13 @@
             </template>
             <div class="d-flex justify-content-between text-muted mb-2">
               <span>Shipping Cost:</span>
-              <template x-if="merchant?.is_include_ongkir">
+              <template x-if="is_event_pickup">
+                <span class="text-success font-weight-bold">FREE (Event Pickup)</span>
+              </template>
+              <template x-if="!is_event_pickup && merchant?.is_include_ongkir">
                 <span class="text-success font-weight-bold">FREE (Included)</span>
               </template>
-              <template x-if="!merchant?.is_include_ongkir">
+              <template x-if="!is_event_pickup && !merchant?.is_include_ongkir">
                 <span x-text="'IDR ' + Number(shippingCost).toLocaleString('id-ID')"></span>
               </template>
             </div>
@@ -332,7 +361,7 @@
             </div>
           </div>
 
-          <button class="btn btn-sod-orange mt-4 py-3 font-weight-bold" @click="submitOrder()" :disabled="isSubmitting || isCalculatingShipping || !selectedCity || !selectedCity.id || !service">
+          <button class="btn btn-sod-orange mt-4 py-3 font-weight-bold" @click="submitOrder()" :disabled="isSubmitting || (!is_event_pickup && (isCalculatingShipping || !selectedCity || !selectedCity.id || !service))">
             <span x-show="!isSubmitting">🔒 PAY WITH QRIS &rarr;</span>
             <span x-show="isSubmitting">Processing Order...</span>
           </button>
@@ -374,6 +403,7 @@
 
           <div class="card bg-light border-0 p-3 my-4 text-left">
             <p class="mb-1"><strong>Order Number:</strong> <span x-text="orderResponse?.order_number"></span></p>
+            <p class="mb-1"><strong>Fulfillment:</strong> <span x-text="orderResponse?.fulfillment_type === 'pickup' ? '🎪 Pickup at Event' : '📦 Courier Delivery'" class="font-weight-bold"></span></p>
             <p class="mb-1"><strong>Total Paid:</strong> IDR <span x-text="Number(orderResponse?.total).toLocaleString('id-ID')"></span></p>
             <p class="mb-2 text-success"><strong>✅ Official Paid Invoice sent to your email!</strong></p>
             <p class="mb-0 text-muted small">You can track your order status using your order number:</p>
@@ -443,8 +473,28 @@
                 </div>
               </template>
               
-              <div class="h3 font-weight-bold text-primary mb-3" x-text="formatRupiah(detailProduct?.price)"></div>
+              <div class="h3 font-weight-bold text-primary mb-3" x-text="formatRupiah(selectedVariant?.price ? selectedVariant.price : detailProduct?.price)"></div>
               
+              <!-- Variant / Size Selector -->
+              <template x-if="detailProduct?.has_variants && detailProduct?.variants?.length > 0">
+                <div class="form-group-custom mt-3">
+                  <label class="font-weight-bold text-dark">Variant / Size *</label>
+                  <select class="form-control-custom" :value="selectedVariant?.id" @change="selectedVariant = detailProduct.variants.find(v => String(v.id) === $event.target.value)">
+                    <template x-for="v in detailProduct?.variants" :key="v.id">
+                      <option :value="v.id" x-text="v.name + (v.price ? ' - IDR ' + Number(v.price).toLocaleString('id-ID') : '') + (v.quantity <= 0 ? ' (Out of stock)' : '')" :disabled="v.quantity <= 0"></option>
+                    </template>
+                  </select>
+                </div>
+              </template>
+
+              <!-- Per-product Code Requirement Field -->
+              <template x-if="detailProduct?.is_code_required">
+                <div class="form-group-custom mt-3">
+                  <label class="font-weight-bold text-dark" x-text="(detailProduct?.code_label || 'Ticket ID') + ' *'"></label>
+                  <input type="text" class="form-control-custom" :placeholder="'Enter ' + (detailProduct?.code_label || 'Ticket ID')" x-model="customCodeInput" required>
+                </div>
+              </template>
+
               <h5 class="font-weight-bold text-dark mb-2">Product Description</h5>
               <p class="text-secondary" style="white-space: pre-wrap; font-size: 0.95rem; max-height: 180px; overflow-y: auto;" x-text="detailProduct?.description || 'No description available for this product.'"></p>
               
@@ -459,8 +509,8 @@
             <div class="mt-4">
               <button 
                 class="btn btn-sod-orange py-3 font-weight-bold" 
-                @click="$store.cart.addItem(detailProduct); closeProductDetail();"
-                :disabled="isProductOutOfStock(detailProduct)"
+                @click="addDetailProductToCart()"
+                :disabled="isProductOutOfStock(detailProduct) || (detailProduct?.has_variants && !selectedVariant)"
                 x-text="isProductOutOfStock(detailProduct) ? 'OUT OF STOCK' : '🛒 ADD TO CART'">
               </button>
             </div>
@@ -506,4 +556,5 @@
   <!-- Template Main Javascript File -->
   <script src="js/main.js"></script>
 </body>
+
 </html>
