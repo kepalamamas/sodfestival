@@ -348,10 +348,10 @@
               <template x-if="is_event_pickup">
                 <span class="text-success font-weight-bold">FREE (Event Pickup)</span>
               </template>
-              <template x-if="!is_event_pickup && merchant?.is_include_ongkir">
+              <template x-if="!is_event_pickup && (isAllIncludeOngkir || merchant?.is_include_ongkir)">
                 <span class="text-success font-weight-bold">FREE (Included)</span>
               </template>
-              <template x-if="!is_event_pickup && !merchant?.is_include_ongkir">
+              <template x-if="!is_event_pickup && !isAllIncludeOngkir && !merchant?.is_include_ongkir">
                 <span x-text="'IDR ' + Number(shippingCost).toLocaleString('id-ID')"></span>
               </template>
             </div>

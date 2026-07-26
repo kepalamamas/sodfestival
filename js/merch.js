@@ -95,6 +95,7 @@ document.addEventListener("alpine:init", () => {
           is_code_required: Boolean(product.is_code_required),
           code_label: product.code_label || "Ticket ID",
           custom_code: customCode ? customCode.trim() : "",
+          is_include_ongkir: Boolean(product.is_include_ongkir),
           merchant_rajaongkir_dest_id: product.merchant_rajaongkir_dest_id || null,
         });
       }
@@ -213,7 +214,7 @@ document.addEventListener("alpine:init", () => {
     async fetchProducts() {
       this.loading = true;
       try {
-        const res = await fetch(`${this.backendUrl}/api/v1/public/merch/products?merchant_code=sodfestival`);
+        const res = await fetch(`${this.backendUrl}/api/v1/public/merch/products?merchant_code=dummymerchant`);
         const json = await res.json();
         if (json.success) {
           this.products = json.data;
@@ -370,7 +371,7 @@ document.addEventListener("alpine:init", () => {
       try {
         const backendUrl = this.getBackendUrl();
         const subtotal = Alpine.store("cart").subtotal;
-        const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(this.voucherCode.trim())}&merchant_code=sodfestival&subtotal=${subtotal}`);
+        const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(this.voucherCode.trim())}&merchant_code=dummymerchant&subtotal=${subtotal}`);
         const json = await res.json();
 
         if (json.success && json.data) {
@@ -402,11 +403,16 @@ document.addEventListener("alpine:init", () => {
       this.voucherSuccessMsg = "";
     },
 
+    get isAllIncludeOngkir() {
+      const items = Alpine.store("cart").items;
+      return items.length > 0 && items.every((i) => i.is_include_ongkir);
+    },
+
     get effectiveShippingCost() {
       if (this.is_event_pickup) {
         return 0;
       }
-      if (this.merchant && this.merchant.is_include_ongkir) {
+      if (this.isAllIncludeOngkir || (this.merchant && this.merchant.is_include_ongkir)) {
         return 0;
       }
       return Number(this.shippingCost || 0);
@@ -679,7 +685,7 @@ document.addEventListener("alpine:init", () => {
 
     async syncCartWithLatestProducts() {
       const backendUrl = this.getBackendUrl();
-      const res = await fetch(`${backendUrl}/api/v1/public/merch/products?merchant_code=sodfestival`);
+      const res = await fetch(`${backendUrl}/api/v1/public/merch/products?merchant_code=dummymerchant`);
       const json = await res.json();
       if (!json.success || !Array.isArray(json.data)) {
         throw new Error(json.message || "Failed to validate cart stock");
