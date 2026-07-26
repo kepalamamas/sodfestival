@@ -130,16 +130,17 @@
                     </div>
                     <div>
                       <div class="merch-card-price" x-text="formatRupiah(product.price)"></div>
-                      <template x-if="getCartQuantity(product.id) === 0">
+                      <template x-if="getCartQuantity(product.id) === 0 || product.has_variants">
                         <button 
                           class="btn btn-sod-orange" 
                           @click="(product.has_variants || product.is_code_required) ? openProductDetail(product) : $store.cart.addItem(product)"
                           :disabled="isProductOutOfStock(product)"
                           x-text="isProductOutOfStock(product) ? 'OUT OF STOCK' : ((product.has_variants || product.is_code_required) ? '🛒 SELECT' : '🛒 ADD TO CART')">
+                          🛒 ADD TO CART
                         </button>
                       </template>
 
-                      <template x-if="getCartQuantity(product.id) > 0">
+                      <template x-if="getCartQuantity(product.id) > 0 && !product.has_variants">
                         <div class="merch-qty-controls" role="group" aria-label="Cart quantity controls">
                           <button
                             type="button"
