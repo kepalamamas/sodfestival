@@ -1,5 +1,31 @@
 /* SOD Festival Merchandise Alpine.js Application Script */
 
+// Configure SweetAlert2 Toast Mixin (Light notification, Top Center)
+const Toast = typeof Swal !== "undefined" ? Swal.mixin({
+  toast: true,
+  position: "top",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.addEventListener("mouseenter", Swal.stopTimer);
+    toast.addEventListener("mouseleave", Swal.resumeTimer);
+  }
+}) : null;
+
+function notify(title, text = "", icon = "warning") {
+  if (Toast) {
+    Toast.fire({
+      icon: icon,
+      title: text ? `${title}: ${text}` : title
+    });
+  } else if (typeof Swal !== "undefined") {
+    Swal.fire(title, text, icon);
+  } else {
+    alert(`${title}: ${text}`);
+  }
+}
+
 document.addEventListener("alpine:init", () => {
   const getProductPurchaseLimit = (product, variant = null) => {
     if (!product || product.is_out_of_stock) return 0;
@@ -42,19 +68,19 @@ document.addEventListener("alpine:init", () => {
       if (!product) return;
 
       if (product.has_variants && (!product.variants || product.variants.length > 0) && !variant) {
-        alert("Please select a size / variant.");
+        notify("Warning", "Please select a size / variant.", "warning");
         return;
       }
 
       if (product.is_code_required && (!customCode || !customCode.trim())) {
         const label = product.code_label || "Ticket ID";
-        alert(`Please enter your ${label} for '${product.title}'.`);
+        notify("Warning", `Please enter your ${label} for '${product.title}'.`, "warning");
         return;
       }
 
       const limit = getProductPurchaseLimit(product, variant);
       if (limit <= 0) {
-        alert("This item / variant is currently out of stock.");
+        notify("Warning", "This item / variant is currently out of stock.", "warning");
         return;
       }
 
@@ -72,9 +98,12 @@ document.addEventListener("alpine:init", () => {
         existing.stock = limit;
         if (existing.quantity < limit) {
           existing.quantity++;
-          if (customCode && customCode.trim()) existing.custom_code = customCode.trim();
+          if (customCode && customCode.trim()) {
+            existing.custom_code = customCode.trim();
+            existing.is_validated = true;
+          }
         } else {
-          alert(`Maximum available stock reached (${limit})`);
+          notify("Warning", `Maximum available stock reached (${limit})`, "warning");
         }
       } else {
         this.items.push({
@@ -95,6 +124,7 @@ document.addEventListener("alpine:init", () => {
           is_code_required: Boolean(product.is_code_required),
           code_label: product.code_label || "Ticket ID",
           custom_code: customCode ? customCode.trim() : "",
+          is_validated: Boolean(product.is_code_required) ? true : false,
           is_include_ongkir: Boolean(product.is_include_ongkir),
           merchant_rajaongkir_dest_id: product.merchant_rajaongkir_dest_id || null,
         });
@@ -122,7 +152,7 @@ document.addEventListener("alpine:init", () => {
             : Number.MAX_SAFE_INTEGER;
           const limit = maxStock;
           if (qty > limit) {
-            alert(`Maximum allowed quantity is ${limit} per item`);
+            notify("Warning", `Maximum allowed quantity is ${limit} per item`, "warning");
             item.quantity = limit;
           } else {
             item.quantity = qty;
@@ -214,7 +244,7 @@ document.addEventListener("alpine:init", () => {
     async fetchProducts() {
       this.loading = true;
       try {
-        const res = await fetch(`${this.backendUrl}/api/v1/public/merch/products?merchant_code=sodfestival`);
+        const res = await fetch(`${this.backendUrl}/api/v1/public/merch/products?merchant_code=dummymerchant`);
         const json = await res.json();
         if (json.success) {
           this.products = json.data;
@@ -381,7 +411,7 @@ document.addEventListener("alpine:init", () => {
       try {
         const backendUrl = this.getBackendUrl();
         const subtotal = Alpine.store("cart").subtotal;
-        const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(this.voucherCode.trim())}&merchant_code=sodfestival&subtotal=${subtotal}`);
+        const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(this.voucherCode.trim())}&merchant_code=dummymerchant&subtotal=${subtotal}`);
         const json = await res.json();
 
         if (json.success && json.data) {
@@ -457,7 +487,7 @@ document.addEventListener("alpine:init", () => {
 
     openCheckout() {
       if (Alpine.store("cart").items.length === 0) {
-        alert("Your cart is empty!");
+        notify("Warning", "Your cart is empty!", "warning");
         return;
       }
       this.showModal = true;
@@ -487,12 +517,15 @@ document.addEventListener("alpine:init", () => {
       this.closeCheckout();
     },
 
+    isCodeValidated: false,
+
     openProductDetail(product) {
       this.detailProduct = product;
       this.selectedVariant = product.has_variants && Array.isArray(product.variants) && product.variants.length > 0
         ? product.variants[0]
         : null;
       this.customCodeInput = "";
+      this.isCodeValidated = false;
       this.showDetailModal = true;
     },
 
@@ -501,49 +534,107 @@ document.addEventListener("alpine:init", () => {
       this.detailProduct = null;
       this.selectedVariant = null;
       this.customCodeInput = "";
+      this.isCodeValidated = false;
     },
 
     isValidatingCode: false,
 
+    async validateCustomCode() {
+      if (!this.customCodeInput || !this.customCodeInput.trim()) {
+        notify("Warning", "Please enter a code.", "warning");
+        return;
+      }
+      this.isValidatingCode = true;
+      try {
+        const backendUrl = this.getBackendUrl();
+        const codeVal = this.customCodeInput.trim();
+        const merchantId = this.detailProduct.merchant_id;
+        
+        const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(codeVal)}&merchant_id=${merchantId}`);
+        const json = await res.json();
+        
+        if (json.success) {
+          this.isCodeValidated = true;
+          notify("Success", "Code is valid!", "success");
+        } else {
+          const label = this.detailProduct.code_label || "Ticket ID";
+          notify("Error", `Invalid ${label}: ${json.message || 'The code entered is not valid.'}`, "error");
+          this.isCodeValidated = false;
+        }
+      } catch (err) {
+        console.error("Code validation error:", err);
+        notify("Error", "Failed to validate code. Please try again.", "error");
+        this.isCodeValidated = false;
+      } finally {
+        this.isValidatingCode = false;
+      }
+    },
+
+    removeCustomCode() {
+      this.customCodeInput = "";
+      this.isCodeValidated = false;
+    },
+
     async addDetailProductToCart() {
       if (!this.detailProduct) return;
       if (this.detailProduct.has_variants && !this.selectedVariant) {
-        alert("Please select a variant / size.");
+        notify("Warning", "Please select a variant / size.", "warning");
         return;
       }
       if (this.detailProduct.is_code_required) {
-        if (!this.customCodeInput || !this.customCodeInput.trim()) {
+        if (!this.isCodeValidated) {
           const label = this.detailProduct.code_label || "Ticket ID";
-          alert(`Please enter your ${label}.`);
+          notify("Warning", `Please validate your ${label} first.`, "warning");
           return;
         }
-
-        this.isValidatingCode = true;
-        try {
-          const backendUrl = this.getBackendUrl();
-          const codeVal = this.customCodeInput.trim();
-          const merchantId = this.detailProduct.merchant_id;
-          
-          const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(codeVal)}&merchant_id=${merchantId}`);
-          const json = await res.json();
-          
-          if (!json.success) {
-            const label = this.detailProduct.code_label || "Ticket ID";
-            alert(`Invalid ${label}: ${json.message || 'The code entered is not valid.'}`);
-            this.isValidatingCode = false;
-            return;
-          }
-        } catch (err) {
-          console.error("Code validation error:", err);
-          alert("Failed to validate code. Please try again.");
-          this.isValidatingCode = false;
-          return;
-        }
-        this.isValidatingCode = false;
       }
 
       Alpine.store("cart").addItem(this.detailProduct, this.selectedVariant, this.customCodeInput);
       this.closeProductDetail();
+    },
+
+    async validateCartItemCode(item) {
+      if (!item.custom_code || !item.custom_code.trim()) {
+        notify("Warning", "Please enter a code.", "warning");
+        return;
+      }
+      item.isValidating = true;
+      try {
+        const backendUrl = this.getBackendUrl();
+        const codeVal = item.custom_code.trim();
+        const merchantId = item.merchant_id;
+        
+        const res = await fetch(`${backendUrl}/api/v1/public/merch/voucher/check?code=${encodeURIComponent(codeVal)}&merchant_id=${merchantId}`);
+        const json = await res.json();
+        
+        if (json.success) {
+          item.is_validated = true;
+          item.custom_code = codeVal;
+          Alpine.store("cart").save();
+          notify("Success", "Code is valid!", "success");
+        } else {
+          const label = item.code_label || "Ticket ID";
+          notify("Error", `Invalid ${label}: ${json.message || 'The code entered is not valid.'}`, "error");
+          item.is_validated = false;
+        }
+      } catch (err) {
+        console.error("Cart item code validation error:", err);
+        notify("Error", "Failed to validate code. Please try again.", "error");
+        item.is_validated = false;
+      } finally {
+        item.isValidating = false;
+      }
+    },
+
+    removeCartItemCode(item) {
+      item.custom_code = "";
+      item.is_validated = false;
+      Alpine.store("cart").save();
+    },
+
+    isCartMissingCodes() {
+      const items = Alpine.store("cart").items;
+      return items.some((item) => item.is_code_required && (!item.custom_code || !item.custom_code.trim() || !item.is_validated));
     },
 
     getCarouselImages() {
@@ -722,7 +813,7 @@ document.addEventListener("alpine:init", () => {
 
     async syncCartWithLatestProducts() {
       const backendUrl = this.getBackendUrl();
-      const res = await fetch(`${backendUrl}/api/v1/public/merch/products?merchant_code=sodfestival`);
+      const res = await fetch(`${backendUrl}/api/v1/public/merch/products?merchant_code=dummymerchant`);
       const json = await res.json();
       if (!json.success || !Array.isArray(json.data)) {
         throw new Error(json.message || "Failed to validate cart stock");
@@ -732,47 +823,54 @@ document.addEventListener("alpine:init", () => {
 
     async submitOrder() {
       if (!this.customer_name || !this.customer_email || !this.customer_phone) {
-        alert("Please complete customer information fields.");
+        notify("Warning", "Please complete customer information fields.", "warning");
         return;
       }
 
       if (!this.is_event_pickup) {
         if (!this.shipping_address) {
-          alert("Please enter a street address for delivery.");
+          notify("Warning", "Please enter a street address for delivery.", "warning");
           return;
         }
         if (!this.selectedCity || !this.selectedCity.id) {
-          alert("Please select a valid destination city.");
+          notify("Warning", "Please select a valid destination city.", "warning");
           return;
         }
         if (!this.service) {
-          alert("Please select a shipping service.");
+          notify("Warning", "Please select a shipping service.", "warning");
           return;
         }
       }
 
       // Check required codes for cart items
       for (const item of Alpine.store("cart").items) {
-        if (item.is_code_required && (!item.custom_code || !item.custom_code.trim())) {
-          const label = item.code_label || "Ticket ID";
-          alert(`Please enter ${label} for product '${item.title}' in your cart.`);
-          return;
+        if (item.is_code_required) {
+          if (!item.custom_code || !item.custom_code.trim()) {
+            const label = item.code_label || "Ticket ID";
+            notify("Warning", `Please enter ${label} for product '${item.title}' in your cart.`, "warning");
+            return;
+          }
+          if (!item.is_validated) {
+            const label = item.code_label || "Ticket ID";
+            notify("Warning", `Please check/validate the ${label} for product '${item.title}' in your cart.`, "warning");
+            return;
+          }
         }
       }
 
       try {
         const wasAdjusted = await this.syncCartWithLatestProducts();
         if (wasAdjusted) {
-          alert("Some cart quantities were adjusted to the latest max quantity limits.");
+          notify("Warning", "Some cart quantities were adjusted to the latest max quantity limits.", "warning");
         }
       } catch (err) {
         console.error("Cart stock validation error:", err);
-        alert("Unable to validate product stock. Please try again.");
+        notify("Error", "Unable to validate product stock. Please try again.", "error");
         return;
       }
 
       if (Alpine.store("cart").items.length === 0) {
-        alert("Your cart is empty after stock validation.");
+        notify("Warning", "Your cart is empty after stock validation.", "warning");
         return;
       }
 
@@ -828,11 +926,11 @@ document.addEventListener("alpine:init", () => {
           this.startQrisCountdown(json.data.expires_at);
           this.startPaymentPolling(json.data.order_id, json.data.status_token);
         } else {
-          alert(json.message || "Failed to place order.");
+          notify("Error", json.message || "Failed to place order.", "error");
         }
       } catch (err) {
         console.error("Order submission error:", err);
-        alert("Server connection failed during checkout.");
+        notify("Error", "Server connection failed during checkout.", "error");
       } finally {
         this.isSubmitting = false;
       }

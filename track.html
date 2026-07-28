@@ -23,10 +23,16 @@
   <link href="css/style.css" rel="stylesheet">
   <link href="css/merch.css" rel="stylesheet">
 
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <style>
+    .swal2-container {
+      z-index: 99999 !important;
+    }
     /* Tracking Page Specific Styles */
     .track-section {
       padding: 130px 0 80px;
@@ -556,7 +562,16 @@
         async copyAwb(awb) {
           try {
             await navigator.clipboard.writeText(awb);
-            alert("AWB copied to clipboard: " + awb);
+            Swal.fire({
+              toast: true,
+              position: "top",
+              icon: "success",
+              title: "Copied!",
+              text: "AWB copied to clipboard: " + awb,
+              timer: 2000,
+              showConfirmButton: false,
+              timerProgressBar: true
+            });
           } catch {
             prompt("Copy this AWB number:", awb);
           }

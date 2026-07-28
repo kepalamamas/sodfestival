@@ -26,10 +26,18 @@
   <!-- CryptoJS for AES Encryption (Optional Client side) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <!-- Alpine.js Core -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <!-- App JS -->
   <script src="js/merch.js"></script>
+  <style>
+    .swal2-container {
+      z-index: 99999 !important;
+    }
+  </style>
 </head>
 
 <body id="body" x-data="checkoutModal">
@@ -219,8 +227,16 @@
                   <!-- Per-product code input requirement in checkout -->
                   <template x-if="item.is_code_required">
                     <div class="mt-1">
-                      <small class="font-weight-bold text-danger d-block" x-text="'* Required ' + (item.code_label || 'Ticket ID') + ':'"></small>
-                      <input type="text" class="form-control-custom form-control-sm mt-1" :placeholder="'Enter ' + (item.code_label || 'Ticket ID')" x-model="item.custom_code" @input="$store.cart.save()">
+                      <small class="font-weight-bold text-danger d-block mb-1" x-text="'* Required ' + (item.code_label || 'Ticket ID') + ':'"></small>
+                      <div class="d-flex" style="gap: 8px;">
+                        <input type="text" class="form-control-custom form-control-sm" :placeholder="'Enter ' + (item.code_label || 'Ticket ID')" x-model="item.custom_code" :disabled="item.is_validated" @input="$store.cart.save()" required>
+                        <template x-if="!item.is_validated">
+                          <button class="btn btn-dark btn-sm font-weight-bold px-3" type="button" @click="validateCartItemCode(item)" :disabled="item.isValidating || !item.custom_code?.trim()" x-text="item.isValidating ? '...' : 'Check'"></button>
+                        </template>
+                        <template x-if="item.is_validated">
+                          <button class="btn btn-danger btn-sm font-weight-bold px-3" type="button" @click="removeCartItemCode(item)">Remove</button>
+                        </template>
+                      </div>
                     </div>
                   </template>
                 </div>
@@ -319,7 +335,7 @@
                 <input type="text" class="form-control-custom text-uppercase" placeholder="Enter promo code" x-model="voucherCode" :disabled="isVoucherApplied" style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
                 <div class="input-group-append">
                   <button class="btn btn-primary font-weight-bold px-3" type="button" @click="applyVoucher()" x-show="!isVoucherApplied" :disabled="isCheckingVoucher || !voucherCode">
-                    <span x-show="!isCheckingVoucher">APPLY</span>
+                    <span x-show="!isCheckingVoucher">CHECK</span>
                     <span x-show="isCheckingVoucher">...</span>
                   </button>
                   <button class="btn btn-outline-danger font-weight-bold px-3" type="button" @click="removeVoucher()" x-show="isVoucherApplied">
@@ -362,7 +378,7 @@
             </div>
           </div>
 
-          <button class="btn btn-sod-orange mt-4 py-3 font-weight-bold" @click="submitOrder()" :disabled="isSubmitting || (!is_event_pickup && (isCalculatingShipping || !selectedCity || !selectedCity.id || !service))">
+          <button class="btn btn-sod-orange mt-4 py-3 font-weight-bold" @click="submitOrder()" :disabled="isSubmitting || (!is_event_pickup && (isCalculatingShipping || !selectedCity || !selectedCity.id || !service)) || isCartMissingCodes()">
             <span x-show="!isSubmitting">🔒 PAY WITH QRIS &rarr;</span>
             <span x-show="isSubmitting">Processing Order...</span>
           </button>
@@ -492,7 +508,15 @@
               <template x-if="detailProduct?.is_code_required">
                 <div class="form-group-custom mt-3">
                   <label class="font-weight-bold text-dark" x-text="(detailProduct?.code_label || 'Ticket ID') + ' *'"></label>
-                  <input type="text" class="form-control-custom" :placeholder="'Enter ' + (detailProduct?.code_label || 'Ticket ID')" x-model="customCodeInput" required>
+                  <div class="d-flex" style="gap: 8px;">
+                    <input type="text" class="form-control-custom" :placeholder="'Enter ' + (detailProduct?.code_label || 'Ticket ID')" x-model="customCodeInput" :disabled="isCodeValidated" required>
+                    <template x-if="!isCodeValidated">
+                      <button class="btn btn-dark font-weight-bold px-4" type="button" @click="validateCustomCode()" :disabled="isValidatingCode || !customCodeInput.trim()" x-text="isValidatingCode ? '...' : 'Check'"></button>
+                    </template>
+                    <template x-if="isCodeValidated">
+                      <button class="btn btn-danger font-weight-bold px-4" type="button" @click="removeCustomCode()">Remove</button>
+                    </template>
+                  </div>
                 </div>
               </template>
 
