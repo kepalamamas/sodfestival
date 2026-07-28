@@ -612,6 +612,14 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
   padding: 0;
 }
 
+#intro .intro-container picture {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 #intro h1 {
   color: #dde6ed;
   font-family: "Raleway", sans-serif;
@@ -621,7 +629,11 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
 }
 
 .intro-img {
-  width: 50vw;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 #intro h1 span {
@@ -2004,7 +2016,10 @@ hr.solid {
   }
 
   .intro-img {
-    width: 90%;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   #about-us-content {
