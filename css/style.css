@@ -621,20 +621,53 @@ body.mobile-nav-active #mobile-nav-toggle #mobile-nav-toggle2 {
   align-items: center;
 }
 
-#introCarousel,
-#introCarousel .carousel-inner,
-#introCarousel .carousel-item {
+#introSlider {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
-#introCarousel .carousel-item picture,
-#introCarousel .carousel-item a {
+#introSlider .intro-slide {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+#introSlider .intro-slide.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+#introSlider .intro-merch-slide {
+  cursor: pointer;
+  position: relative;
+}
+
+#introSlider .intro-merch-slide.active,
+#introSlider .intro-merch-slide.active * {
+  cursor: pointer !important;
+}
+
+#introMerchImage,
+#introSlider .intro-merch-slide {
+  cursor: pointer;
+}
+
+#introSlider .intro-merch-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  cursor: pointer;
 }
 
 #intro h1 {
