@@ -126,12 +126,21 @@
 
   <section id="intro">
     <div class="intro-container wow fadeIn">
-      <picture>
-        <source srcset="img/2026/intro-img-mob.png" media="(max-width: 991px)">
-        <!-- <source srcset="img/poster2-vertical-400.webp" media="(max-width: 400px)" type="image/webp" id="src400">
-        <source srcset="img/poster2-vertical-800.webp" media="(max-width: 800px)" type="image/webp" id="src800"> -->
-        <img src="img/2026/intro-img.png" class="intro-img" alt="intro" id="intro-img">
-      </picture>
+      <div id="introCarousel" class="carousel slide" data-ride="carousel" data-interval="4000" data-pause="false" data-wrap="true">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <picture>
+              <source srcset="img/2026/intro-img-mob.png" media="(max-width: 991px)">
+              <img src="img/2026/intro-img.png" class="intro-img d-block" alt="SOD Festival intro" id="intro-img">
+            </picture>
+          </div>
+          <div class="carousel-item intro-merch-slide" data-href="merch.html" style="cursor: pointer;">
+            <a href="merch.html" aria-label="Go to merchandise page" id="introMerchLink">
+              <img src="/img/2026/intro-1.jpg" class="intro-img d-block" alt="SOD Festival merchandise" style="cursor: pointer;" id="introMerchImage">
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -623,6 +632,56 @@
   </script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      if (window.jQuery && $('#introCarousel').length) {
+        $('#introCarousel').carousel({
+          interval: 4000,
+          pause: false,
+          wrap: true
+        });
+      }
+
+      var introMerchLink = document.getElementById("introMerchLink");
+      var introMerchImage = document.getElementById("introMerchImage");
+      var introCarousel = document.getElementById("introCarousel");
+      var goToMerchPage = function (event) {
+        if (event && event.type === "touchend") {
+          event.preventDefault();
+        }
+        window.location.assign("merch.html");
+      };
+
+      if (introMerchLink) {
+        introMerchLink.addEventListener("click", goToMerchPage);
+        introMerchLink.addEventListener("touchend", goToMerchPage, { passive: false });
+      }
+
+      if (introMerchImage) {
+        introMerchImage.addEventListener("click", goToMerchPage);
+        introMerchImage.addEventListener("touchend", goToMerchPage, { passive: false });
+      }
+
+      if (introCarousel) {
+        var introCarouselEvents = ["mousedown", "pointerdown", "click", "pointerup", "touchend"];
+        introCarouselEvents.forEach(function (eventName) {
+          introCarousel.addEventListener(eventName, function (event) {
+            var merchSlide = event.target && event.target.closest ? event.target.closest(".intro-merch-slide") : null;
+            if (!merchSlide || !merchSlide.classList.contains("active")) {
+              return;
+            }
+
+            if ((eventName === "mousedown" || eventName === "pointerdown") && typeof event.button === "number" && event.button !== 0) {
+              return;
+            }
+
+            if (eventName === "touchend") {
+              event.preventDefault();
+            }
+
+            window.location.assign(merchSlide.getAttribute("data-href") || "merch.html");
+          }, true);
+        });
+      }
+
       // function checkMobile(toggler) {
       //   if (window.innerWidth <= 991) {
       //     toggler.style.display = "inline-block";
